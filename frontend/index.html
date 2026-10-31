@@ -67,7 +67,7 @@ const isRemoteHost = window.location.hostname.endsWith('github.io') || (window.l
 const API_BASE = (window.location.port === '8080') ? '/api' : 'http://localhost:8080/api';
 
 const $=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10);
-const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);
+const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
 
 let U = null, token = localStorage.getItem('bl_jwt') || null;
@@ -846,6 +846,7 @@ async function auth(){
     }
     localStorage.setItem('bl_jwt', token);
     localStorage.setItem('bl_u', JSON.stringify(U));
+    L = false;
     page = NAV[U.role][0][0];
     await loadData();
     rr();
@@ -880,6 +881,7 @@ function authLocal(e, p, R) {
     U = { id: found.id, name: found.name, email: found.email, role: found.role };
   }
   localStorage.setItem('bl_u', JSON.stringify(U));
+  L = false;
   page = NAV[U.role][0][0];
   updateDemoDash();
   rr();
@@ -900,6 +902,7 @@ function goA(t){tab=t;L=false;AP=false;scrollTo(0,0);rr()}
 function goD(){L=false;scrollTo(0,0);rr()}
 
 function io(){
+  if (typeof IntersectionObserver === 'undefined') return;
   const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target)}}),{threshold:.15});
   document.querySelectorAll('.rv').forEach(e=>o.observe(e));
 }
