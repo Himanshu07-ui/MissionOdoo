@@ -61,7 +61,9 @@ label{display:block;color:var(--mu);font-size:12px;margin-bottom:8px}label input
 @media print{body>*:not(#md){display:none!important}.md{position:static;background:none;display:block}.row{display:none}}
 </style></head><body><div id="app"></div><div id="md" class="md"></div><div id="ts"></div>
 <script>
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = (window.location.protocol === 'file:')
+  ? 'http://localhost:8080/api'
+  : (window.location.port === '8080' ? '/api' : 'http://' + (window.location.hostname || 'localhost') + ':8080/api');
 const $=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10);
 const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
@@ -83,6 +85,12 @@ async function req(path, opt = {}) {
     return data;
   } catch(e) {
     console.error('API Error:', path, e);
+    if (e.name === 'TypeError' && String(e.message).toLowerCase().includes('fetch')) {
+      if (window.location.protocol === 'file:') {
+        throw new Error('Browser blocked connection from file://. Please open http://localhost:8080 in your browser.');
+      }
+      throw new Error('Cannot connect to backend server. Make sure Spring Boot is running on port 8080.');
+    }
     throw e;
   }
 }

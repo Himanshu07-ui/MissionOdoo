@@ -1,0 +1,692 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Brightloop Billing</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eceff5;--sf:#fff;--tx:#14213d;--mu:#667089;--bd:#dfe3ee;--ac:#2446d6;--ac2:#e5eaff;--ok:#0f7a55;--okb:#dcf4e9;--wr:#955300;--wrb:#ffeccc;--er:#c0283b;--erb:#fde2e5;--nv:#14213d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1220;--sf:#151b2c;--tx:#e8ecf8;--mu:#97a1bd;--bd:#252d46;--ac:#7b94ff;--ac2:#222d57;--ok:#4fd1a0;--okb:#123b2e;--wr:#ffbe5c;--wrb:#3d2d0c;--er:#ff7b8b;--erb:#42171d;--nv:#080c18;color-scheme:dark}}:root[data-theme=dark]{--bg:#0d1220;--sf:#151b2c;--tx:#e8ecf8;--mu:#97a1bd;--bd:#252d46;--ac:#7b94ff;--ac2:#222d57;--ok:#4fd1a0;--okb:#123b2e;--wr:#ffbe5c;--wrb:#3d2d0c;--er:#ff7b8b;--erb:#42171d;--nv:#080c18;color-scheme:dark}
+.k,.cd,.tw{box-shadow:0 1px 3px #1a24400d;border-radius:14px}
+:root{--bg:#f8f3f7;--tx:#1f1426;--mu:#76697f;--bd:#eadfec;--ac:#d1296a;--ac2:#fde6ef;--nv:#1f1426;--hz:#5a1240;--g:linear-gradient(135deg,#d1296a,#f0643a);--glow:linear-gradient(#0000,#0000)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e0813;--sf:#181021;--tx:#f5ecf8;--mu:#a999b6;--bd:#2f2140;--ac:#ff5c9d;--ac2:#3a1636;--ok:#3ee6b0;--okb:#0e3328;--wr:#ffc15c;--wrb:#3a2a0b;--er:#ff7a7a;--erb:#431a24;--nv:#08040d;--hz:#3b0f45;--g:linear-gradient(135deg,#ff4f93,#9a5cff);--glow:radial-gradient(900px 500px at 88% -10%,#ff4f9330,#0000 60%),radial-gradient(700px 520px at -10% 110%,#7b4dff2e,#0000 60%)}}
+:root[data-theme=dark]{--bg:#0e0813;--sf:#181021;--tx:#f5ecf8;--mu:#a999b6;--bd:#2f2140;--ac:#ff5c9d;--ac2:#3a1636;--ok:#3ee6b0;--okb:#0e3328;--wr:#ffc15c;--wrb:#3a2a0b;--er:#ff7a7a;--erb:#431a24;--nv:#08040d;--hz:#3b0f45;--g:linear-gradient(135deg,#ff4f93,#9a5cff);--glow:radial-gradient(900px 500px at 88% -10%,#ff4f9330,#0000 60%),radial-gradient(700px 520px at -10% 110%,#7b4dff2e,#0000 60%)}
+body{background:var(--glow),var(--bg);background-attachment:fixed}.btn.pr{background:var(--g);border-color:transparent;color:#fff}.bars i{background:var(--g)}.av{background:var(--g);color:#fff}.hero{background:linear-gradient(145deg,var(--nv),var(--hz))}aside{background:color-mix(in srgb,var(--sf) 88%,transparent)}.k b{letter-spacing:-.5px}
+:root{--bg:#f4f3f1;--tx:#1c1e21;--mu:#6b6f76;--bd:#e2e0dc;--ac:#e8620c;--ac2:#ffe9d9;--nv:#1c1e21;--hz:#2f3237;--g:linear-gradient(135deg,#ff8a1f,#f2570a);--glow:linear-gradient(#0000,#0000)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141618;--sf:#1e2124;--tx:#f1f0ee;--mu:#9a9fa6;--bd:#30343a;--ac:#ff7a1a;--ac2:#3b2412;--ok:#4ade9a;--okb:#12362a;--wr:#ffc247;--wrb:#3a2d0c;--er:#ff6b6b;--erb:#40191c;--nv:#0c0d0f;--hz:#272a2f;--g:linear-gradient(135deg,#ff9a2e,#ff5a1f);--glow:radial-gradient(800px 480px at 90% -10%,#ff7a1a22,#0000 60%),radial-gradient(600px 460px at -10% 110%,#ff5a1f14,#0000 60%)}}
+:root[data-theme=dark]{--bg:#141618;--sf:#1e2124;--tx:#f1f0ee;--mu:#9a9fa6;--bd:#30343a;--ac:#ff7a1a;--ac2:#3b2412;--ok:#4ade9a;--okb:#12362a;--wr:#ffc247;--wrb:#3a2d0c;--er:#ff6b6b;--erb:#40191c;--nv:#0c0d0f;--hz:#272a2f;--g:linear-gradient(135deg,#ff9a2e,#ff5a1f);--glow:radial-gradient(800px 480px at 90% -10%,#ff7a1a22,#0000 60%),radial-gradient(600px 460px at -10% 110%,#ff5a1f14,#0000 60%)}
+.k{transition:transform .2s,border-color .2s}.k:hover{transform:translateY(-3px);border-color:var(--ac)}.btn{transition:transform .15s,border-color .15s}.btn.pr:hover{transform:translateY(-1px);filter:brightness(1.08)}input:focus,select:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2)}.bars i{transform-origin:bottom;animation:grow .9s cubic-bezier(.2,.7,.2,1) both}@keyframes grow{from{transform:scaleY(0)}}
+.hero{position:relative;overflow:hidden;background:linear-gradient(150deg,#0c0d0f,#25282d);padding:50px 60px 90px}.hero>*:not(.blob){position:relative;z-index:1}.hero h1{color:#fff}.hero h1 span{display:inline-block}.hero p{color:#b4b9c1}
+.hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 30% 40%,#000,transparent 75%);mask-image:radial-gradient(circle at 30% 40%,#000,transparent 75%)}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;animation:drift 14s ease-in-out infinite alternate}.b1{width:340px;height:340px;background:#ff7a1a;top:-80px;right:-60px}.b2{width:300px;height:300px;background:#ff4d00;bottom:-90px;left:-60px;opacity:.28;animation-duration:19s;animation-direction:alternate-reverse}
+@keyframes drift{to{transform:translate(-60px,50px) scale(1.2)}}@keyframes rise{from{opacity:0;transform:translateY(18px)}}@keyframes float{50%{transform:translateY(-8px)}}@keyframes fill{from{width:0}to{width:100%}}@keyframes cy{0%{opacity:0}4%,30%{opacity:1}34%,100%{opacity:0}}@keyframes mq{to{transform:translateX(-50%)}}
+.a{animation:rise .8s var(--d,0s) cubic-bezier(.2,.7,.2,1) both}.fm>*:not(.ic){animation:rise .7s .35s both}.st .a,.st .fm>*{animation:none}
+.card{margin:26px 0 4px;max-width:400px;background:#ffffff10;border:1px solid #ffffff22;border-radius:16px;padding:14px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);animation:float 6s ease-in-out infinite}.ch{display:flex;justify-content:space-between;margin-bottom:8px;font-weight:600}.ch span{color:#ffb070;font-size:12px}
+.pb{height:4px;background:#ffffff1c;border-radius:9px;overflow:hidden;margin-bottom:6px}.pb i{display:block;height:100%;background:var(--g);animation:fill 6s linear infinite}.rw{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #ffffff14}.rw span:first-child{flex:1}.rw b{font-weight:600}
+.pl{position:relative;width:86px;height:22px}.pl i{position:absolute;inset:0;text-align:center;border-radius:99px;font:600 12px/22px 'Instrument Sans',sans-serif;opacity:0;animation:cy 6s infinite;animation-delay:calc(var(--i)*.8s + var(--k,0)*2s);background:#ffffff1f;color:#ffd2ad}.pl i:nth-child(2){--k:1;background:#ff7a1a33;color:#ffb070}.pl i:nth-child(3){--k:2;background:#4ade9a26;color:#6df0b4}
+.stats{display:flex;gap:30px;margin-top:22px;flex-wrap:wrap}.stats b{display:block;font:800 28px 'Bricolage Grotesque',sans-serif}.stats small{color:#a9aeb6}
+.mq{position:absolute!important;left:0;right:0;bottom:24px;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,#0000,#000 12%,#000 88%,#0000);mask-image:linear-gradient(90deg,#0000,#000 12%,#000 88%,#0000)}.mq div{display:inline-block;animation:mq 30s linear infinite}.mq span{margin:0 18px;color:#b9bec6}.mq span:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:12px}
+.lp{overflow-x:hidden}.ln{position:absolute!important;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:calc(18px + env(safe-area-inset-top,0px)) 5vw 0;z-index:3}.ln .lg{font-size:22px;cursor:pointer;color:#fff}.ln>div:last-child{display:flex;gap:10px;align-items:center}.ln .btn{background:#ffffff14;border-color:#ffffff2e;color:#fff}.ln .btn.pr{background:var(--g);border-color:transparent}
+.lh{position:relative;overflow:hidden;background:linear-gradient(150deg,#0c0d0f,#25282d);color:#fff;padding:140px 5vw 120px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}.lh:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 30% 40%,#000,transparent 75%);mask-image:radial-gradient(circle at 30% 40%,#000,transparent 75%)}.lh>*:not(.blob){position:relative;z-index:1}
+.lh h1{font-size:clamp(38px,5.4vw,70px);line-height:1.02;font-weight:800;letter-spacing:-1.5px;margin-bottom:18px;color:#fff}.lh h1 span{display:inline-block}.lh p{color:#b4b9c1;font-size:18px;max-width:520px;margin:0}.cta{display:flex;gap:12px;margin:26px 0 8px;flex-wrap:wrap}.cta .btn{padding:12px 22px;font-size:15px;border-radius:12px}.cta .btn:not(.pr){background:#ffffff14;border-color:#ffffff2e;color:#fff}.lh .card{max-width:440px;margin:0 0 0 auto}
+.ls{padding:90px 5vw 30px;max-width:1250px;margin:auto}.ls h2{font-size:clamp(28px,3.6vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:10px;max-width:660px}.ls>p{color:var(--mu);font-size:16px;max-width:560px;margin:0 0 36px}.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.fc{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:22px;transition:transform .25s,border-color .25s,opacity .7s var(--d,0s)}.fc:hover{transform:translateY(-6px);border-color:var(--ac)}.fc i{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--g);color:#fff;font:700 18px 'Bricolage Grotesque',sans-serif;margin-bottom:14px}.fc h3{font-size:18px;margin-bottom:6px}.fc p{margin:0;color:var(--mu)}
+.sp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px;position:relative}.sp:before,.sp:after{content:"";position:absolute;top:21px;left:22px;height:2px;right:22px;background:var(--bd)}.sp:after{right:auto;width:0;background:var(--g);transition:width 1.8s .3s ease}.sp.in:after{width:calc(100% - 44px)}.sx{position:relative;z-index:1}.sx b{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--sf);border:2px solid var(--ac);color:var(--ac);font:800 16px 'Bricolage Grotesque',sans-serif;margin-bottom:12px}.sx h3{font-size:16px}.sx p{color:var(--mu);margin:4px 0 0}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s var(--d,0s),transform .7s var(--d,0s)}.rv.in{opacity:1;transform:none}
+.band{margin:70px 5vw 60px;border-radius:26px;background:var(--g);color:#fff;padding:64px 5vw;text-align:center;position:relative;overflow:hidden}.band:before{content:"";position:absolute;inset:-50%;background:conic-gradient(from 0deg,#fff0,#ffffff30,#fff0 30%);animation:spin 12s linear infinite}.band>*{position:relative}.band h2{font-size:clamp(28px,4vw,50px);font-weight:800;margin-bottom:10px}.band p{opacity:.92;margin:0 0 24px;font-size:17px}.band .btn{padding:12px 26px;font-size:15px;background:#fff;color:#1c1e21;border-color:#fff;border-radius:12px}@keyframes spin{to{transform:rotate(1turn)}}
+.ft{padding:0 5vw 40px;color:var(--mu);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}.ft a{cursor:pointer;color:var(--ac)}
+@media(max-width:800px){.lh{grid-template-columns:1fr;padding:120px 6vw 70px}.ls{padding-top:60px}}html[data-mode=l]{--bg:#f6f4f1;--glow:radial-gradient(900px 520px at 88% -8%,#ff8a1f26,#0000 62%),radial-gradient(700px 520px at -8% 105%,#ffc08a30,#0000 60%)}
+[data-mode=l] .k,[data-mode=l] .cd,[data-mode=l] .tw{box-shadow:0 1px 2px #1c1e2110,0 14px 30px -18px #1c1e2133}[data-mode=l] .k{border-top:3px solid var(--ac)}[data-mode=l] th{background:#fbf8f5}[data-mode=l] aside{background:#fffffff2}[data-mode=l] aside a.on{background:var(--g);color:#fff;box-shadow:0 8px 18px -8px #f2570a99}[data-mode=l] .chip{box-shadow:0 1px 2px #1c1e2110}
+[data-mode=l] .lh{background:radial-gradient(700px 440px at 85% 8%,#ffb36b66,#0000 65%),radial-gradient(600px 420px at 0% 100%,#ffd9b855,#0000 60%),linear-gradient(180deg,#fffaf5,#f6f4f1);color:#1c1e21}[data-mode=l] .lh:before{background-image:linear-gradient(#1c1e2110 1px,transparent 1px),linear-gradient(90deg,#1c1e2110 1px,transparent 1px)}[data-mode=l] .lh h1{color:#1c1e21}[data-mode=l] .lh p{color:#5d626b}[data-mode=l] .stats small{color:#6b6f76}[data-mode=l] .blob{opacity:.22}[data-mode=l] .ln .lg{color:#1c1e21}[data-mode=l] .ln .btn{background:#fff;border-color:var(--bd);color:#1c1e21}[data-mode=l] .ln .btn.pr,[data-mode=l] .cta .btn.pr{background:var(--g);border-color:transparent;color:#fff;box-shadow:0 10px 22px -10px #f2570acc}[data-mode=l] .cta .btn:not(.pr){background:#fff;border-color:var(--bd);color:#1c1e21}
+[data-mode=l] .lh .card{background:#ffffffd9;border-color:#fff;box-shadow:0 34px 60px -26px #e8620c66,0 2px 6px #1c1e2112}[data-mode=l] .ch{color:#1c1e21}[data-mode=l] .ch span{color:#c24e00}[data-mode=l] .rw{border-color:#1c1e2112;color:#1c1e21}[data-mode=l] .pb{background:#1c1e2112}[data-mode=l] .pl i{background:#1c1e2110;color:#6b6f76}[data-mode=l] .pl i:nth-child(2){background:#ff7a1a22;color:#c24e00}[data-mode=l] .pl i:nth-child(3){background:#4ade9a33;color:#0f7a55}[data-mode=l] .lh .mq span{color:#6b6f76}
+[data-mode=l] .fc{box-shadow:0 1px 2px #1c1e2110,0 18px 36px -24px #1c1e2144}[data-mode=l] .fc i{box-shadow:0 8px 18px -6px #f2570a99}[data-mode=l] .band{box-shadow:0 30px 60px -28px #f2570acc}[data-mode=l] .ls h2{color:#1c1e21}
+@media(max-width:800px){.card,.mq{display:none}.hero{padding:30px}}@media(prefers-reduced-motion:reduce){*,*:before{animation:none!important;transition:none!important}}.btn.pr{box-shadow:0 1px 2px #0003}
+.tb{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:20px}.chip{display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--bd);border-radius:99px;padding:3px 14px 3px 3px;font-weight:500}.av{width:28px;height:28px;border-radius:50%;background:var(--ac);color:var(--bg);display:grid;place-items:center;font-weight:700}.chip small{color:var(--mu);font-weight:400}.btn.ic{border-radius:99px;width:36px;height:36px;padding:0}
+html,body{height:100%;margin:0}*{box-sizing:border-box}body{background:var(--bg);color:var(--tx);font:14px/1.5 'Instrument Sans',system-ui,sans-serif}
+h1,h2,h3,.lg{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;margin:0}
+.sh{display:flex;min-height:100%}aside{width:230px;background:var(--sf);border-right:1px solid var(--bd);color:var(--tx);padding:20px 14px;display:flex;flex-direction:column;gap:3px;position:sticky;top:0;height:100vh;flex:none}
+aside .lg{font-size:21px;color:var(--tx);padding:2px 10px 20px;font-weight:800}aside a{padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--mu);font-weight:500}aside a:hover{background:var(--bg);color:var(--tx)}aside a.on{background:var(--ac2);color:var(--ac)}
+main{flex:1;padding:26px 30px;min-width:0;max-width:1250px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}.hd h2{font-size:26px;font-weight:800}
+.btn{border:1px solid var(--bd);background:var(--sf);color:var(--tx);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-weight:500}.btn:hover{border-color:var(--ac)}.btn.pr{background:var(--ac);border-color:var(--ac);color:#fff}.btn.sm{padding:3px 8px;font-size:12px;margin:1px}.btn.dn{color:var(--er)}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}.k{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px}.k small{color:var(--mu)}.k b{display:block;font:800 26px 'Bricolage Grotesque',sans-serif;margin-top:2px}.k.w b{color:var(--er)}.k.g b{color:var(--ok)}
+.cd{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:16px}.cd h3{font-size:16px;margin-bottom:10px}
+.tw{overflow-x:auto;background:var(--sf);border:1px solid var(--bd);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:500;font-size:12px}tr:last-child td{border:0}
+.p{padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--ac2);color:var(--ac)}.p.ok{background:var(--okb);color:var(--ok)}.p.wr{background:var(--wrb);color:var(--wr)}.p.er{background:var(--erb);color:var(--er)}
+input,select{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;width:100%}input[type=checkbox]{width:auto}.sr{max-width:320px;margin-bottom:10px}.fl{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:14px}.fl label{width:150px}
+label{display:block;color:var(--mu);font-size:12px;margin-bottom:8px}label input,label select{margin-top:3px}
+.md{display:none;position:fixed;inset:0;background:#0009;z-index:9;align-items:center;justify-content:center;padding:16px}.md.on{display:flex}.mb{background:var(--sf);border-radius:14px;padding:20px;width:100%;max-width:440px;max-height:92vh;overflow:auto}.mb h3{margin-bottom:12px}.row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.pg{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:8px;color:var(--mu)}
+.bars{display:flex;gap:14px;align-items:end;height:130px}.bars div{flex:1;text-align:center;font-size:12px;color:var(--mu)}.bars i{display:block;background:var(--ac);border-radius:6px 6px 0 0;min-height:3px;margin-bottom:4px}
+.au{display:grid;grid-template-columns:1.1fr 1fr;min-height:100%}.hero{background:var(--nv);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:center}.hero h1{font-size:46px;line-height:1.05;font-weight:800;max-width:480px}.hero p{color:#aab6dd;max-width:420px;font-size:16px}.fm{padding:50px;display:flex;flex-direction:column;justify-content:center;max-width:440px;width:100%;margin:auto}.tabs{display:flex;gap:16px;margin-bottom:14px}.tabs a{cursor:pointer;color:var(--mu);padding-bottom:4px}.tabs a.on{color:var(--tx);border-bottom:2px solid var(--ac);font-weight:600}.err{color:var(--er);min-height:20px}.demo{font-size:12px;color:var(--mu);margin-top:14px}
+#ts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--nv);color:#fff;padding:9px 16px;border-radius:99px;z-index:20;display:none}
+.inv h3{font-size:22px}.inv td,.inv th{white-space:normal}
+@media(max-width:800px){.sh{flex-direction:column}aside{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;padding:10px}aside .lg{width:100%;padding:2px 6px}.us{display:none}main{padding:16px}.au{grid-template-columns:1fr}.hero{padding:30px}.hero h1{font-size:32px}.fm{padding:24px}}
+@media print{body>*:not(#md){display:none!important}.md{position:static;background:none;display:block}.row{display:none}}
+</style></head><body><div id="app"></div><div id="md" class="md"></div><div id="ts"></div>
+<script>
+const API_BASE = (window.location.protocol === 'file:')
+  ? 'http://localhost:8080/api'
+  : (window.location.port === '8080' ? '/api' : 'http://' + (window.location.hostname || 'localhost') + ':8080/api');
+const $=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10);
+const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
+
+let U = null, token = localStorage.getItem('bl_jwt') || null;
+let page='dash', Q='', PG=0, F={}, tab='in', AP=false, L=true;
+
+// In-memory data synced from backend
+let S = { prod: [], plan: [], tax: [], subs: [], inv: [], pay: [], users: [], dash: {} };
+
+async function req(path, opt = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opt.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const res = await fetch(API_BASE + path, { ...opt, headers });
+    if (res.status === 401) { out(); throw new Error('Session expired. Please sign in again.'); }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Server request failed');
+    return data;
+  } catch(e) {
+    console.error('API Error:', path, e);
+    if (e.name === 'TypeError' && String(e.message).toLowerCase().includes('fetch')) {
+      if (window.location.protocol === 'file:') {
+        throw new Error('Browser blocked connection from file://. Please open http://localhost:8080 in your browser.');
+      }
+      throw new Error('Cannot connect to backend server. Make sure Spring Boot is running on port 8080.');
+    }
+    throw e;
+  }
+}
+
+async function loadData() {
+  if (!U) return;
+  try {
+    const [p, pl, tx, su, iv, py, us, ds] = await Promise.all([
+      req('/products').catch(() => []),
+      req('/plans').catch(() => []),
+      req('/taxes').catch(() => []),
+      req('/subscriptions').catch(() => []),
+      req('/invoices').catch(() => []),
+      req('/payments').catch(() => []),
+      U.role === 'CUSTOMER' ? req('/customers').catch(() => []) : req('/users').catch(() => []),
+      U.role !== 'CUSTOMER' ? req(`/dashboard?from=${F.f||''}&to=${F.t||''}`).catch(() => ({})) : Promise.resolve({})
+    ]);
+    S.prod = p;
+    S.plan = pl;
+    S.tax  = tx;
+    S.subs = su;
+    S.inv  = iv;
+    S.pay  = py;
+    S.users = us;
+    S.dash = ds;
+  } catch(e) {
+    toast(e.message);
+  }
+}
+
+const by=(a,id)=>S[a]?.find(x=>x.id==id)||{};
+const pill=(s)=>`<span class="p ${{PAID:'ok',Paid:'ok',ACTIVE:'ok',Active:'ok',OVERDUE:'er',Overdue:'er',CANCELLED:'er',Cancelled:'er',CLOSED:'er',Closed:'er',PAUSED:'wr',Paused:'wr',CONFIRMED:'',Confirmed:'',DRAFT:'wr',Draft:'wr',QUOTATION:'wr',Quotation:'wr'}[s]??''}">${s}</span>`;
+const can=r=>U?.role==r||(r=='STAFF'&&U?.role=='ADMIN');
+const NAV={ADMIN:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans'],['tax','Taxes'],['users','Users']],STAFF:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans']],CUSTOMER:[['home','My account']]};
+
+function go(p){page=p;Q='';PG=0;rr()}
+
+function tbl(rows,cols,fn,search=true){
+  const q=Q.toLowerCase(),r=q?rows.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):rows,n=Math.ceil(r.length/12)||1;PG=Math.min(PG,n-1);
+  return(search?`<input class=sr placeholder="Search…" value="${esc(Q)}" oninput="Q=this.value;PG=0;rr(1)">`:'')+`<div class=tw><table><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${r.slice(PG*12,PG*12+12).map(x=>`<tr>${fn(x).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')||`<tr><td colspan=${cols.length}>Nothing here yet.</td></tr>`}</table><div class=pg>${r.length} rows · page ${PG+1}/${n}<button class="btn sm" onclick="PG=Math.max(0,PG-1);rr()">Prev</button><button class="btn sm" onclick="PG=Math.min(${n-1},PG+1);rr()">Next</button></div></div>`;
+}
+
+const head=(t,b='')=>`<div class=hd><h2>${t}</h2><div>${b}</div></div>`;
+
+function subAct(s){
+  const p=s.plan||{}, b=[];
+  if(s.status=='PAUSED'||s.status=='Paused') b.push(['Resume','RESUME']);
+  else if(s.status=='DRAFT'||s.status=='Draft') b.push(['Confirm','CONFIRM']);
+  else if(s.status=='CONFIRMED'||s.status=='Confirmed') b.push(['Activate','ACTIVATE']);
+  else if(s.status=='ACTIVE'||s.status=='Active'){
+    if(p.canClose!==false) b.push(['Close','CLOSE']);
+    if(p.canPause!==false) b.push(['Pause','PAUSE']);
+  }
+  const r=(s.status=='ACTIVE'||s.status=='Active'||s.status=='CLOSED'||s.status=='Closed') && p.canRenew!==false ? `<button class="btn sm" onclick="doSubAct(${s.id},'RENEW')">Renew</button>` : '';
+  return b.map(x=>`<button class="btn sm" onclick="doSubAct(${s.id},'${x[1]}')">${x[0]}</button>`).join('')+r;
+}
+
+async function doSubAct(id, act){
+  try {
+    await req(`/subscriptions/${id}/action`, { method: 'PUT', body: JSON.stringify({ action: act }) });
+    toast('Subscription updated');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function invAct(i){
+  const a=[];
+  if(i.status=='DRAFT'||i.status=='Draft') a.push(['Confirm','CONFIRMED']);
+  if(i.status=='DRAFT'||i.status=='Draft'||i.status=='CONFIRMED'||i.status=='Confirmed') a.push(['Cancel','CANCELLED']);
+  if(i.status!='CANCELLED'&&i.status!='Cancelled') a.push(['Send','send']);
+  if(i.status=='CONFIRMED'||i.status=='Confirmed'||i.status=='DRAFT'||i.status=='Draft') a.push(['Record payment','pay']);
+  return a.map(x=>`<button class="btn sm" onclick="doInvAct(${i.id},'${x[1]}')">${x[0]}</button>`).join('')+`<button class="btn sm" onclick="viewInv(${i.id})">View / Print</button>`;
+}
+
+async function doInvAct(id, a){
+  const i=S.inv.find(x=>x.id==id);
+  if(a=='send'){ toast(`Invoice ${i.invoiceNo} sent to ${i.customerEmail||'customer'}`); return; }
+  if(a=='pay'){ payForm(i); return; }
+  try {
+    await req(`/invoices/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: a }) });
+    toast(`Invoice status updated to ${a}`);
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function payForm(i){
+  modal(`Record payment · ${i.invoiceNo}`, [
+    {k:'method', l:'Method', t:'select', o:['UPI','Card','Cash','Bank Transfer','Cheque'].map(x=>[x,x])},
+    {k:'amount', l:`Amount (due ${fm(i.balance)})`, t:'number', v:i.balance},
+    {k:'paymentDate', l:'Date', t:'date', v:td()},
+    {k:'note', l:'Note'}
+  ], async (v)=>{
+    if(!(v.amount>0) || v.amount > i.balance + 0.01) { toast('Enter an amount up to ' + fm(i.balance)); return false; }
+    try {
+      await req('/payments', {
+        method: 'POST',
+        body: JSON.stringify({
+          invoiceId: i.id,
+          amount: v.amount,
+          method: v.method.toUpperCase().replace(' ','_'),
+          paymentDate: v.paymentDate,
+          note: v.note
+        })
+      });
+      toast('Payment recorded successfully');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+function payPick(){
+  const unpaid = S.inv.filter(i=> (i.status=='CONFIRMED'||i.status=='Confirmed'||i.status=='DRAFT'||i.status=='Draft') && i.balance > 0);
+  if(!unpaid.length){ toast('No unpaid invoices. Run billing first.'); return; }
+  modal('Choose invoice', [
+    {k:'id', l:'Invoice', t:'select', o: unpaid.map(i=>[i.id, `${i.invoiceNo} · ${i.customerName} · ${fm(i.balance)} (${i.status})`])}
+  ], (v)=>{
+    const inv = S.inv.find(x=>x.id==v.id);
+    if(inv) setTimeout(()=>payForm(inv), 50);
+  }, 'Next');
+}
+
+function viewInv(id){
+  const i = S.inv.find(x=>x.id==id);
+  if(!i) return;
+  const isOverdue = (i.status=='CONFIRMED'||i.status=='Confirmed') && i.dueDate < td();
+  $('#md').innerHTML=`<div class="mb inv" style="max-width:640px">
+    <h3>Invoice ${esc(i.invoiceNo)}</h3>
+    <p>${esc(i.customerName)} · ${esc(i.customerEmail)}<br>Date ${i.invoiceDate} · Due ${i.dueDate} · ${pill(isOverdue?'Overdue':i.status)}</p>
+    <div class=tw><table style="min-width:0"><tr><th>Item<th>Qty<th>Price<th>Tax<th>Amount</tr>
+    ${(i.lines||[]).map(l=>`<tr><td>${esc(l.description)}<td>${l.quantity}<td>${fm(l.unitPrice)}<td>${l.taxRate}%<td>${fm(l.lineTotal)}</tr>`).join('')}
+    </table></div>
+    <p style="text-align:right">Subtotal ${fm(i.subtotal)}<br>Tax ${fm(i.taxAmount)}<br><b style="font-size:18px">Total ${fm(i.total)}</b><br>Paid ${fm(i.paidAmount)}<br>Balance ${fm(i.balance)}</p>
+    <div class=row><button class=btn onclick=cm()>Close</button><button class="btn pr" onclick=window.print()>Print</button></div>
+  </div>`;
+  $('#md').className='md on';
+}
+
+const P={
+  dash(){
+    const d = S.dash || {};
+    const actCount = d.activeSubscriptions ?? S.subs.filter(s=>s.status=='ACTIVE'||s.status=='Active').length;
+    const mrr = d.monthlyRecurringRevenue ?? 0;
+    const rev = d.revenueCollected ?? 0;
+    const owed = d.outstandingAmount ?? 0;
+    const overdueCount = d.overdueInvoiceCount ?? 0;
+    const ov = S.inv.filter(i=>(i.status=='CONFIRMED'||i.status=='Confirmed') && i.dueDate < td());
+
+    const mo=[]; for(let k=5;k>=0;k--){const dt=new Date();dt.setMonth(dt.getMonth()-k);mo.push(dt.toISOString().slice(0,7))}
+    const v=mo.map(m=>S.pay.filter(p=>p.paymentDate?.startsWith(m)).reduce((a,p)=>a+(+p.amount||0),0)),mx=Math.max(...v,1);
+
+    return head('Dashboard')+`<div class=fl><label>From<input type=date value="${F.f||''}" onchange="F.f=this.value;loadData().then(rr)"></label><label>To<input type=date value="${F.t||''}" onchange="F.t=this.value;loadData().then(rr)"></label></div>
+    <div class=kp>
+      <div class=k><small>Active subscriptions</small><b>${actCount}</b></div>
+      <div class=k><small>Monthly recurring revenue</small><b>${fm(mrr)}</b></div>
+      <div class="k g"><small>Revenue collected</small><b>${fm(rev)}</b></div>
+      <div class=k><small>Still owed</small><b>${fm(owed)}</b></div>
+      <div class="k w"><small>Overdue invoices</small><b>${overdueCount}</b></div>
+    </div>
+    <div class=cd><h3>Collected, last 6 months</h3><div class=bars>${v.map((x,i)=>`<div><i style="height:${x/mx*100}px"></i>${mo[i].slice(5)}<br>${fm(x)}</div>`).join('')}</div></div>
+    <h3 style="margin-bottom:8px">Overdue — chase these first</h3>`+
+    tbl(ov,['Invoice','Customer','Due','Balance',''],i=>[i.invoiceNo,esc(i.customerName),i.dueDate,fm(i.balance),`<button class="btn sm" onclick="doInvAct(${i.id},'pay')">Record payment</button>`],false);
+  },
+
+  subs(){
+    return head('Subscriptions', `<button class="btn pr" onclick="newSubModal()">New subscription</button>`)+
+    tbl(S.subs, ['Number','Customer','Plan','Start','Expiry','Next bill','Status','Actions'], s=>[
+      esc(s.subscriptionNo),
+      esc(s.customer?.name||'—'),
+      esc(s.plan?.name||'—'),
+      s.startDate,
+      s.expiryDate,
+      (s.status=='ACTIVE'||s.status=='Active')?s.nextBillDate:'—',
+      pill(s.status),
+      subAct(s)
+    ]);
+  },
+
+  inv(){
+    return head('Invoices', `<button class="btn pr" onclick="runBillingAction()">Run billing</button>`)+
+    tbl([...S.inv].reverse(), ['Invoice','Customer','Date','Due','Total','Balance','Status','Actions'], i=>[
+      esc(i.invoiceNo),
+      esc(i.customerName),
+      i.invoiceDate,
+      i.dueDate,
+      fm(i.total),
+      fm(i.balance),
+      pill((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.dueDate<td()?'Overdue':i.status)+(i.sent?' ✉':''),
+      invAct(i)
+    ]);
+  },
+
+  pay(){
+    return head('Payments', `<button class="btn pr" onclick="payPick()">Record payment</button>`)+
+    tbl([...S.pay].reverse(), ['Date','Invoice','Customer','Method','Amount','Note'], p=>[
+      p.paymentDate,
+      esc(p.invoiceNo||'—'),
+      esc(p.customerName||'—'),
+      p.method,
+      fm(p.amount),
+      esc(p.note)
+    ]);
+  },
+
+  prod(){
+    const a = U.role==='ADMIN';
+    return head('Products', a?`<button class="btn pr" onclick="newProdModal()">Add product</button>`:'')+
+    tbl(S.prod, ['Name','Type','Sales','Cost','Tax','Variants',''], p=>[
+      esc(p.name),
+      esc(p.type),
+      fm(p.salePrice),
+      fm(p.costPrice),
+      esc(p.tax?.name||'—'),
+      (p.variants||[]).map(v=>esc(v.name)+' +'+v.priceAddon).join(', ')||'—',
+      a?`<button class="btn sm dn" onclick="deleteProd(${p.id})">Delete</button>`:''
+    ]);
+  },
+
+  plan(){
+    const a = U.role==='ADMIN';
+    return head('Plans', a?`<button class="btn pr" onclick="newPlanModal()">Add plan</button>`:'')+
+    tbl(S.plan, ['Name','Price','Billing','Min qty','Available','Rules',''], p=>[
+      esc(p.name),
+      fm(p.price),
+      esc(p.billingPeriod),
+      p.minQty,
+      p.availableFrom+' → '+p.availableTo,
+      [p.canAutoClose&&'auto-close',p.canClose&&'early close',p.canPause&&'pause',p.canRenew&&'renew'].filter(Boolean).join(', ')||'none',
+      a?`<button class="btn sm dn" onclick="deletePlan(${p.id})">Delete</button>`:''
+    ]);
+  },
+
+  tax(){
+    return head('Taxes', `<button class="btn pr" onclick="newTaxModal()">Add tax</button>`)+
+    tbl(S.tax, ['Name','Rate',''], t=>[
+      esc(t.name),
+      t.rate+'%',
+      `<button class="btn sm dn" onclick="deleteTax(${t.id})">Delete</button>`
+    ]);
+  },
+
+  users(){
+    return head('Users', `<button class="btn pr" onclick="newUserModal()">Add staff member</button>`)+
+    tbl(S.users, ['Name','Email','Role',''], u=>[
+      esc(u.name),
+      esc(u.email),
+      pill(u.role),
+      u.id==U.id?'':`<button class="btn sm dn" onclick="deleteUser(${u.id})">Delete</button>`
+    ]);
+  },
+
+  home(){
+    const ss = S.subs.filter(s=>s.customer?.id==U.id || s.customer==U.id);
+    const ii = S.inv.filter(i=>i.customerId==U.id && i.status!='DRAFT' && i.status!='Draft' && i.status!='CANCELLED' && i.status!='Cancelled');
+    const owed = ii.reduce((a,x)=>a+(+x.balance||0),0);
+    return head('Hello, '+esc(U.name))+`
+    <div class=kp>
+      <div class=k><small>Active subscriptions</small><b>${ss.filter(s=>s.status=='ACTIVE'||s.status=='Active').length}</b></div>
+      <div class="k w"><small>Outstanding</small><b>${fm(owed)}</b></div>
+    </div>
+    <h3 style="margin-bottom:8px">My subscriptions</h3>`+
+    tbl(ss, ['Number','Plan','Expiry','Next bill','Status','Actions'], s=>[
+      esc(s.subscriptionNo),
+      esc(s.plan?.name||'—'),
+      s.expiryDate,
+      (s.status=='ACTIVE'||s.status=='Active')?s.nextBillDate:'—',
+      pill(s.status),
+      (s.status=='ACTIVE'||s.status=='Active'||s.status=='PAUSED'||s.status=='Paused')?subAct(s):''
+    ], false)+
+    `<h3 style="margin:18px 0 8px">My invoices</h3>`+
+    tbl(ii, ['Invoice','Due','Total','Balance','Status','Actions'], i=>[
+      esc(i.invoiceNo),
+      i.dueDate,
+      fm(i.total),
+      fm(i.balance),
+      pill((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.dueDate<td()?'Overdue':i.status),
+      `<button class="btn sm" onclick="viewInv(${i.id})">View / Print</button>`+
+      ((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.balance>0 ? `<button class="btn sm pr" onclick="customerPayOnline(${i.id})">Pay now</button>` : '')
+    ], false);
+  }
+};
+
+async function customerPayOnline(id){
+  const i = S.inv.find(x=>x.id==id);
+  if(!i) return;
+  try {
+    await req('/payments', {
+      method: 'POST',
+      body: JSON.stringify({
+        invoiceId: i.id,
+        amount: i.balance,
+        method: 'CARD',
+        paymentDate: td(),
+        note: 'Paid via customer portal'
+      })
+    });
+    toast('Payment received. Thank you!');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+async function runBillingAction(){
+  try {
+    const res = await req('/invoices/billing/run', { method: 'POST' });
+    toast(res.invoicesCreated ? `${res.invoicesCreated} invoice(s) generated!` : 'Nothing due — no duplicates created.');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function newProdModal(){
+  modal('Add product', [
+    {k:'name', l:'Name'},
+    {k:'type', l:'Type', t:'select', o:['Software','Add-on','Service'].map(x=>[x,x])},
+    {k:'salePrice', l:'Sales price', t:'number'},
+    {k:'costPrice', l:'Cost price', t:'number', v:0},
+    {k:'taxId', l:'Tax', t:'select', o: S.tax.map(t=>[t.id, t.name])},
+    {k:'vr', l:'Variants (e.g. Odoo=560, Zoho=300)'},
+    {k:'notes', l:'Notes'}
+  ], async (v)=>{
+    if(!v.name || v.salePrice <= 0) { toast('Name and valid sale price required'); return false; }
+    const variants = (v.vr||'').split(',').map(x=>x.split('=')).filter(x=>x[0].trim()).map(x=>({name:'Brand: '+x[0].trim(), priceAddon:+x[1]||0}));
+    try {
+      await req('/products', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: v.name,
+          type: v.type,
+          salePrice: v.salePrice,
+          costPrice: v.costPrice,
+          taxId: v.taxId ? +v.taxId : null,
+          notes: v.notes,
+          variants
+        })
+      });
+      toast('Product created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteProd(id){
+  if(!confirm('Delete this product?')) return;
+  try { await req(`/products/${id}`, { method: 'DELETE' }); toast('Product deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newPlanModal(){
+  modal('Add plan', [
+    {k:'name', l:'Name'},
+    {k:'price', l:'Recurring price', t:'number'},
+    {k:'billingPeriod', l:'Billing period', t:'select', o:[['MONTHLY','Monthly'],['YEARLY','Yearly'],['WEEKLY','Weekly'],['DAILY','Daily']]},
+    {k:'minQty', l:'Minimum quantity', t:'number', v:1},
+    {k:'availableFrom', l:'Available from', t:'date', v:td()},
+    {k:'availableTo', l:'Available until', t:'date', v:new Date(Date.now()+365*864e5).toISOString().slice(0,10)},
+    {k:'canAutoClose', l:'Close automatically at end', t:'check'},
+    {k:'canClose', l:'Can be closed early', t:'check', v:1},
+    {k:'canPause', l:'Can be paused', t:'check', v:1},
+    {k:'canRenew', l:'Can be renewed', t:'check', v:1}
+  ], async (v)=>{
+    if(!v.name || v.availableTo < v.availableFrom) { toast('Valid name and dates required'); return false; }
+    try {
+      await req('/plans', { method: 'POST', body: JSON.stringify(v) });
+      toast('Plan created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deletePlan(id){
+  if(!confirm('Delete this plan?')) return;
+  try { await req(`/plans/${id}`, { method: 'DELETE' }); toast('Plan deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newTaxModal(){
+  modal('Add tax', [
+    {k:'name', l:'Name'},
+    {k:'rate', l:'Rate %', t:'number'}
+  ], async (v)=>{
+    if(!v.name) { toast('Name required'); return false; }
+    try {
+      await req('/taxes', { method: 'POST', body: JSON.stringify(v) });
+      toast('Tax created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteTax(id){
+  if(!confirm('Delete this tax?')) return;
+  try { await req(`/taxes/${id}`, { method: 'DELETE' }); toast('Tax deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newUserModal(){
+  modal('Add staff member', [
+    {k:'name', l:'Name'},
+    {k:'email', l:'Email'},
+    {k:'password', l:'Temporary password', t:'password'}
+  ], async (v)=>{
+    v.email = (v.email||'').trim().toLowerCase();
+    if(!v.name || !/^\S+@\S+\.\S+$/.test(v.email)) { toast('Valid name and email required'); return false; }
+    try {
+      await req('/users', { method: 'POST', body: JSON.stringify({ ...v, role: 'STAFF' }) });
+      toast('Staff member added');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteUser(id){
+  if(!confirm('Delete user?')) return;
+  try { await req(`/users/${id}`, { method: 'DELETE' }); toast('User deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newSubModal(){
+  const custs = S.users.filter(u=>u.role==='CUSTOMER');
+  if(!custs.length){ toast('No customers found. Add a customer first.'); return; }
+  const productOptions = S.prod.map(p=>[p.id, `${p.name} (₹${p.salePrice})`]);
+
+  modal('New subscription', [
+    {k:'customerId', l:'Customer', t:'select', o: custs.map(c=>[c.id, c.name])},
+    {k:'planId', l:'Plan', t:'select', o: S.plan.map(p=>[p.id, `${p.name} (₹${p.price} / ${p.billingPeriod})`])},
+    {k:'productId', l:'Primary product', t:'select', o: productOptions},
+    {k:'quantity', l:'Quantity', t:'number', v:1},
+    {k:'startDate', l:'Start date', t:'date', v:td()},
+    {k:'expiryDate', l:'Expiry date', t:'date', v:new Date(Date.now()+365*864e5).toISOString().slice(0,10)},
+    {k:'paymentTermsDays', l:'Payment terms', t:'select', o:[[0,'Immediate'],[15,'15 days'],[30,'30 days'],[45,'45 days']], v:15}
+  ], async (v)=>{
+    const plan = by('plan', v.planId);
+    const prod = by('prod', v.productId);
+    if(v.quantity < (plan.minQty||1)) { toast('Plan requires min quantity: ' + plan.minQty); return false; }
+    if(v.expiryDate <= v.startDate) { toast('Expiry date must be after start date'); return false; }
+
+    const lines = [];
+    if(plan.price > 0){
+      lines.push({
+        description: 'Plan fee – ' + plan.name,
+        quantity: 1,
+        unitPrice: plan.price,
+        taxRate: 18.00
+      });
+    }
+    if(prod.id){
+      lines.push({
+        productId: prod.id,
+        description: prod.name,
+        quantity: +v.quantity,
+        unitPrice: prod.salePrice,
+        taxRate: prod.tax?.rate || 18.00
+      });
+    }
+
+    try {
+      await req('/subscriptions', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: +v.customerId,
+          planId: +v.planId,
+          startDate: v.startDate,
+          expiryDate: v.expiryDate,
+          paymentTermsDays: +v.paymentTermsDays,
+          lines
+        })
+      });
+      toast('Subscription created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+function modal(t,fs,cb,ok='Save'){
+  const m=$('#md');
+  m.innerHTML=`<div class=mb><h3>${t}</h3>${fs.map(f=>`<label>${f.l}${f.t=='select'?`<select id=f_${f.k}>${f.o.map(o=>`<option value="${esc(o[0])}" ${o[0]==f.v?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:f.t=='check'?`<input type=checkbox id=f_${f.k} ${f.v?'checked':''}>`:`<input id=f_${f.k} type=${f.t||'text'} value="${esc(f.v??'')}">`}</label>`).join('')}<div class=row><button class=btn onclick=cm()>Cancel</button><button class="btn pr" id=modal_ok_btn>${ok}</button></div></div>`;
+  m.className='md on';
+  $('#modal_ok_btn').onclick = async ()=>{
+    const v={};
+    fs.forEach(f=>{
+      const e=$('#f_'+f.k);
+      v[f.k]=f.t=='check'?e.checked:f.t=='number'?+e.value:e.value;
+    });
+    if(await cb(v)!==false){ cm(); }
+  };
+}
+
+const cm=()=>$('#md').className='md';
+
+function authH(){
+  const up=tab=='up';
+  return`<div class="au${AP?' st':''}"><div class=hero><i class="blob b1"></i><i class="blob b2"></i><div class="lg a" onclick=goL() style="font-size:22px;margin-bottom:34px;cursor:pointer" title="Back to home">◐ Brightloop</div><h1><span class=a style="--d:.1s">Recurring revenue,</span><br><span class=a style="--d:.26s">on autopilot.</span></h1><p class=a style="--d:.4s">Plans, subscriptions, invoices and payments in one place. No spreadsheets, no missed renewals.</p><div class=a style="--d:.55s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹6,490'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created for you</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div><div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>Discount rules</span><span>Overdue alerts</span><span>Customer portal</span><span>Revenue reports</span>'.repeat(4)}</div></div></div><div class=fm><button class="btn ic" title="Toggle dark mode" onclick=tgl() style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:5">${isDark()?'☀':'☾'}</button><div class=tabs><a class="${up?'':'on'}" onclick="tab='in';rr()">Sign in</a><a class="${up?'on':''}" onclick="tab='up';rr()">Create account</a></div>${up?'<label>Company or full name<input id=an></label>':''}<label>Email<input id=ae type=email></label><label>Password<input id=ap type=password onkeydown="event.key=='Enter'&&auth()"></label><div class=err id=ar></div><button class="btn pr" onclick="auth()">${up?'Create account':'Sign in'}</button>${up?'<div class=demo>Secure password with upper, lower and special characters.</div>':`<div class=demo style="margin-top:20px;line-height:1.7;background:var(--ac2);padding:10px 14px;border-radius:10px"><b>Quick Demo Logins:</b><br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('admin@brightloop.io','Admin@1234')">admin@brightloop.io</a> / Admin@1234 (Admin)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('staff@brightloop.io','Staff@1234')">staff@brightloop.io</a> / Staff@1234 (Staff)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('cust@acme.com','Cust@12345')">cust@acme.com</a> / Cust@12345 (Customer)</div>`}</div></div>`;
+}
+
+function fillLogin(e, p){
+  $('#ae').value = e;
+  $('#ap').value = p;
+  auth();
+}
+
+async function auth(){
+  const e=$('#ae').value.trim().toLowerCase(), p=$('#ap').value, R=m=>$('#ar').textContent=m;
+  R('');
+  try {
+    if(tab=='up'){
+      const n=$('#an').value.trim();
+      if(!n||!/^\S+@\S+\.\S+$/.test(e)) return R('Enter your name and a valid email.');
+      const res = await req('/auth/register', { method: 'POST', body: JSON.stringify({ name: n, email: e, password: p, role: 'CUSTOMER' }) });
+      token = res.token;
+      U = { id: res.userId, name: res.name, email: res.email, role: res.role };
+    } else {
+      const res = await req('/auth/login', { method: 'POST', body: JSON.stringify({ email: e, password: p }) });
+      token = res.token;
+      U = { id: res.userId, name: res.name, email: res.email, role: res.role };
+    }
+    localStorage.setItem('bl_jwt', token);
+    localStorage.setItem('bl_u', JSON.stringify(U));
+    page = NAV[U.role][0][0];
+    await loadData();
+    rr();
+  } catch(err) {
+    R(err.message);
+  }
+}
+
+function out(){
+  U=null; token=null;
+  localStorage.removeItem('bl_jwt');
+  localStorage.removeItem('bl_u');
+  tab='in'; AP=false; L=true; scrollTo(0,0); rr();
+}
+
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t=='dark':matchMedia('(prefers-color-scheme:dark)').matches};
+function tgl(){const t=isDark()?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('bl_theme',t)}catch(e){}rr()}
+
+function goL(){L=true;AP=false;scrollTo(0,0);rr()}
+function goA(t){tab=t;L=false;AP=false;scrollTo(0,0);rr()}
+function goD(){L=false;scrollTo(0,0);rr()}
+
+function io(){
+  const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target)}}),{threshold:.15});
+  document.querySelectorAll('.rv').forEach(e=>o.observe(e));
+}
+
+function landH(){
+  const li=!!U,ctas=li?`<button class="btn pr" onclick=goD()>Open dashboard</button>`:`<button class="btn pr" onclick="goA('up')">Get started free</button><button class=btn onclick="goA('in')">Sign in</button>`;
+  const F=[['◈','Products, variants and plans','Price by brand or variant, bill daily to yearly, and decide plan by plan what can pause, renew or close.'],['⟲','Quote to subscription','Start from a template, then move through Draft, Quotation, Confirmed, Active and Closed. Everyone sees the status.'],['⚡','Invoices that write themselves','One click bills every due subscription with lines, taxes and totals filled in. Nothing is billed twice or skipped.'],['%','Taxes and discounts','Set the rules once. Subtotals, taxes and totals are calculated strictly on the backend.'],['₹','Payments and overdue tracking','Record payments via UPI, Card, Cash, Bank Transfer and Cheque. Outstanding balances auto-calculate.'],['▦','Dashboard and customer portal','Real-time MRR, collected revenue, outstanding balances, and self-service customer portal.']];
+  const steps=[['Set up','Products, plans, taxes'],['Quote','From customer order'],['Activate','Confirm and go live'],['Bill','One click, server-verified'],['Collect','UPI, Card, Bank transfer']];
+  return`<div class=lp><div class=lh><i class="blob b1"></i><i class="blob b2"></i><div class=ln><div class=lg onclick=goL()>◐ Brightloop</div><div><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button>${li?`<button class=btn onclick=out()>Sign out</button><button class="btn pr" onclick=goD()>Dashboard</button>`:`<button class=btn onclick="goA('in')">Sign in</button><button class="btn pr" onclick="goA('up')">Get started</button>`}</div></div>
+  <div><h1><span class=a style="--d:.1s">Subscriptions,</span><br><span class=a style="--d:.26s">billed while you sleep.</span></h1><p class=a style="--d:.4s">Plans, renewals, invoices and payments in one system. No spreadsheets, no hand-typed invoices, no missed renewals.</p><div class="cta a" style="--d:.55s">${ctas}</div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div></div>
+  <div class=a style="--d:.5s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹25,511.60'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div>
+  <div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>REST APIs</span><span>Spring Boot</span><span>MySQL Engine</span><span>Revenue reports</span>'.repeat(4)}</div></div></div>
+  <div class=ls><h2 class=rv>Everything a recurring business needs, in one place.</h2><p class=rv style="--d:.1s">From the first product to the quarterly report, each step connects to the next.</p><div class=fg>${F.map((f,i)=>`<div class="fc rv" style="--d:${(i%3)*.1}s"><i>${f[0]}</i><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('')}</div></div>
+  <div class=ls><h2 class=rv>From plan to paid in five steps.</h2><p class=rv style="--d:.1s">The same path every billing month, with no manual work in the middle.</p><div class="sp rv">${steps.map((s,i)=>`<div class=sx><b>${i+1}</b><h3>${s[0]}</h3><p>${s[1]}</p></div>`).join('')}</div></div>
+  <div class="band rv"><h2>Stop typing invoices by hand.</h2><p>Powered by Java Spring Boot REST APIs and MySQL backend.</p>${li?`<button class="btn" onclick=goD()>Open dashboard</button>`:`<button class="btn" onclick="goA('up')">Create your account</button>`}</div>
+  <div class=ft><span>© Brightloop Software · Powered by Spring Boot & MySQL</span><a onclick="scrollTo({top:0,behavior:'smooth'})">Back to top</a></div></div>`;
+}
+
+function cnt(fast){
+  document.querySelectorAll('[data-n]').forEach(e=>{
+    const n=+e.dataset.n,d=+e.dataset.d||0,sf=e.dataset.s||'',put=v=>e.textContent=v.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})+sf;
+    if(fast)return put(n);
+    let t0;const f=t=>{t0??=t;const p=Math.min(1,(t-t0)/1800);put(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};
+    put(0);requestAnimationFrame(f);
+  });
+}
+
+function rr(f){
+  const a=$('#app');
+  document.documentElement.dataset.mode=isDark()?'d':'l';
+  if(L){ a.innerHTML=landH(); cnt(false); io(); return; }
+  if(!U){ const first=!AP; a.innerHTML=authH(); cnt(!first); AP=true; return; }
+  a.innerHTML=`<div class=sh><aside><div class=lg onclick=goL() style="cursor:pointer" title="Back to home">◐ Brightloop</div>${(NAV[U.role]||[]).map(n=>`<a class="${page==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('')}</aside><main><div class=tb><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button><div class=chip><span class=av>${esc(U.name[0]).toUpperCase()}</span>${esc(U.name)}<small style="margin-left:6px;text-transform:lowercase">${U.role}</small></div><button class=btn onclick=out()>Sign out</button></div>${P[page]?P[page]():P.dash()}</main></div>`;
+  if(f){ const e=$('.sr'); if(e){ e.focus(); e.setSelectionRange(1e3,1e3); } }
+}
+
+(async()=>{
+  try{ const th=localStorage.getItem('bl_theme'); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+  try{
+    const cachedU = localStorage.getItem('bl_u');
+    if(cachedU && token) {
+      U = JSON.parse(cachedU);
+      page = NAV[U.role]?.[0]?.[0] || 'dash';
+      L = false;
+      await loadData();
+    }
+  }catch(e){}
+  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>rr());
+  rr();
+})();
+</script></body></html>

@@ -22,18 +22,33 @@ public class WebConfig {
         return reg;
     }
 
-    /** CORS filter — allows all origins for the hackathon demo */
+    /** Permissive CORS filter supporting localhost, file://, private network, and preflight */
     @Bean
     public FilterRegistrationBean<Filter> corsFilter() {
         FilterRegistrationBean<Filter> reg = new FilterRegistrationBean<>();
         reg.setFilter((req, res, chain) -> {
             HttpServletResponse r = (HttpServletResponse) res;
             HttpServletRequest  q = (HttpServletRequest) req;
-            r.setHeader("Access-Control-Allow-Origin",  q.getHeader("Origin") != null ? q.getHeader("Origin") : "*");
-            r.setHeader("Access-Control-Allow-Credentials", "true");
+
+            String origin = q.getHeader("Origin");
+            if (origin != null && !origin.isEmpty() && !"null".equalsIgnoreCase(origin)) {
+                r.setHeader("Access-Control-Allow-Origin", origin);
+                r.setHeader("Access-Control-Allow-Credentials", "true");
+            } else {
+                r.setHeader("Access-Control-Allow-Origin", "*");
+            }
+
+            String reqHeaders = q.getHeader("Access-Control-Request-Headers");
+            if (reqHeaders != null && !reqHeaders.isEmpty()) {
+                r.setHeader("Access-Control-Allow-Headers", reqHeaders);
+            } else {
+                r.setHeader("Access-Control-Allow-Headers", "*");
+            }
+
             r.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
-            r.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Accept");
+            r.setHeader("Access-Control-Allow-Private-Network", "true");
             r.setHeader("Access-Control-Max-Age", "3600");
+
             if ("OPTIONS".equalsIgnoreCase(q.getMethod())) {
                 r.setStatus(HttpServletResponse.SC_OK);
                 return;
