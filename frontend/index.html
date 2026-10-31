@@ -54,49 +54,111 @@ label{display:block;color:var(--mu);font-size:12px;margin-bottom:8px}label input
 .md{display:none;position:fixed;inset:0;background:#0009;z-index:9;align-items:center;justify-content:center;padding:16px}.md.on{display:flex}.mb{background:var(--sf);border-radius:14px;padding:20px;width:100%;max-width:440px;max-height:92vh;overflow:auto}.mb h3{margin-bottom:12px}.row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 .pg{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:8px;color:var(--mu)}
 .bars{display:flex;gap:14px;align-items:end;height:130px}.bars div{flex:1;text-align:center;font-size:12px;color:var(--mu)}.bars i{display:block;background:var(--ac);border-radius:6px 6px 0 0;min-height:3px;margin-bottom:4px}
-.au{display:grid;grid-template-columns:1.1fr 1fr;min-height:100%}.hero{background:var(--nv);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:center}.hero h1{font-size:46px;line-height:1.05;font-weight:800;max-width:480px}.hero p{color:#aab6dd;max-width:420px;font-size:16px}.fm{padding:50px;display:flex;flex-direction:column;justify-content:center;max-width:440px;width:100%;margin:auto}.tabs{display:flex;gap:16px;margin-bottom:14px}.tabs a{cursor:pointer;color:var(--mu);padding-bottom:4px}.tabs a.on{color:var(--tx);border-bottom:2px solid var(--ac);font-weight:600}.err{color:var(--er);min-height:20px}.demo{font-size:12px;color:var(--mu);margin-top:14px}
+.au{display:grid;grid-template-columns:1.1fr 1fr;min-height:100%}.hero{background:var(--nv);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:center}.hero h1{font-size:46px;line-height:1.05;font-weight:800;max-width:480px}.hero p{color:#aab6dd;max-width:420px;font-size:16px}.fm{padding:50px;display:flex;flex-direction:column;justify-content:center;max-width:440px;width:100%;margin:auto}.tabs{display:flex;gap:16px;margin-bottom:14px}.tabs a{cursor:pointer;color:var(--mu);padding-bottom:4px}.tabs a.on{color:var(--tx);border-bottom:2px solid var(--ac);font-weight:600}.err{color:var(--er);min-height:20px;font-size:13px;line-height:1.4}.demo{font-size:12px;color:var(--mu);margin-top:14px}
 #ts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--nv);color:#fff;padding:9px 16px;border-radius:99px;z-index:20;display:none}
 .inv h3{font-size:22px}.inv td,.inv th{white-space:normal}
+.banner{background:var(--ac2);color:var(--tx);padding:8px 16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.banner b{color:var(--ac)}
 @media(max-width:800px){.sh{flex-direction:column}aside{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;padding:10px}aside .lg{width:100%;padding:2px 6px}.us{display:none}main{padding:16px}.au{grid-template-columns:1fr}.hero{padding:30px}.hero h1{font-size:32px}.fm{padding:24px}}
 @media print{body>*:not(#md){display:none!important}.md{position:static;background:none;display:block}.row{display:none}}
 </style></head><body><div id="app"></div><div id="md" class="md"></div><div id="ts"></div>
 <script>
-const API_BASE = (window.location.protocol === 'file:')
-  ? 'http://localhost:8080/api'
-  : (window.location.port === '8080' ? '/api' : 'http://' + (window.location.hostname || 'localhost') + ':8080/api');
+const isRemoteHost = window.location.hostname.endsWith('github.io') || (window.location.protocol === 'https:' && window.location.hostname !== 'localhost');
+const API_BASE = (window.location.port === '8080') ? '/api' : 'http://localhost:8080/api';
+
 const $=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10);
-const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);
 const toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
 
 let U = null, token = localStorage.getItem('bl_jwt') || null;
 let page='dash', Q='', PG=0, F={}, tab='in', AP=false, L=true;
+let isDemoMode = isRemoteHost;
 
-// In-memory data synced from backend
+// In-memory data synced from backend or seed
 let S = { prod: [], plan: [], tax: [], subs: [], inv: [], pay: [], users: [], dash: {} };
 
 async function req(path, opt = {}) {
+  if (isDemoMode) {
+    throw new Error('DEMO_MODE');
+  }
   const headers = { 'Content-Type': 'application/json', ...(opt.headers || {}) };
   if (token) headers['Authorization'] = 'Bearer ' + token;
   try {
     const res = await fetch(API_BASE + path, { ...opt, headers });
     if (res.status === 401) { out(); throw new Error('Session expired. Please sign in again.'); }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Server request failed');
+    if (!res.ok) throw new Error(data.error || 'Server request failed (' + res.status + ')');
     return data;
   } catch(e) {
     console.error('API Error:', path, e);
-    if (e.name === 'TypeError' && String(e.message).toLowerCase().includes('fetch')) {
-      if (window.location.protocol === 'file:') {
-        throw new Error('Browser blocked connection from file://. Please open http://localhost:8080 in your browser.');
-      }
-      throw new Error('Cannot connect to backend server. Make sure Spring Boot is running on port 8080.');
-    }
     throw e;
   }
 }
 
+// ── In-browser Demo Data Engine for GitHub Pages preview ──
+function initDemoData() {
+  const saved = localStorage.getItem('bl_demo_data');
+  if (saved) {
+    try { S = JSON.parse(saved); return; } catch(e){}
+  }
+  const tax = [{id:1, name:'GST 18%', rate:18.00}, {id:2, name:'GST 5%', rate:5.00}];
+  const prod = [
+    {id:1, name:'Brightloop CRM', type:'Software', salePrice:1200, costPrice:400, notes:'Core CRM seat', tax:tax[0], variants:[{id:1, name:'Brand: Odoo', priceAddon:560}, {id:2, name:'Brand: Zoho', priceAddon:300}]},
+    {id:2, name:'Analytics Add-on', type:'Add-on', salePrice:400, costPrice:120, notes:'Advanced analytics', tax:tax[0], variants:[]},
+    {id:3, name:'Priority Support', type:'Service', salePrice:250, costPrice:80, notes:'Priority SLA support', tax:tax[1], variants:[]},
+    {id:4, name:'Cloud Storage', type:'Software', salePrice:800, costPrice:200, notes:'500GB storage', tax:tax[0], variants:[{id:3, name:'Tier: 1TB', priceAddon:400}]}
+  ];
+  const plan = [
+    {id:1, name:'Pro Monthly', price:500, billingPeriod:'MONTHLY', minQty:1, availableFrom:'2026-01-01', availableTo:'2027-12-31', canAutoClose:false, canClose:true, canPause:true, canRenew:true},
+    {id:2, name:'Enterprise Yearly', price:5000, billingPeriod:'YEARLY', minQty:5, availableFrom:'2026-01-01', availableTo:'2027-12-31', canAutoClose:true, canClose:false, canPause:false, canRenew:true}
+  ];
+  const users = [
+    {id:1, name:'Asha Admin', email:'admin@brightloop.io', role:'ADMIN'},
+    {id:2, name:'Purnava Staff', email:'staff@brightloop.io', role:'STAFF'},
+    {id:3, name:'Acme Retail', email:'cust@acme.com', role:'CUSTOMER'},
+    {id:4, name:'Globex Corp', email:'ops@globex.com', role:'CUSTOMER'}
+  ];
+  const subs = [
+    {id:1, subscriptionNo:'SUB-0001', customer:users[2], plan:plan[0], status:'ACTIVE', startDate:'2026-08-22', expiryDate:'2027-08-22', nextBillDate:'2026-11-30', paymentTermsDays:15, lines:[{id:1, description:'Brightloop CRM (Brand: Odoo)', quantity:12, unitPrice:1760, taxRate:18}, {id:2, description:'Plan fee – Pro Monthly', quantity:1, unitPrice:500, taxRate:18}]},
+    {id:2, subscriptionNo:'SUB-0002', customer:users[3], plan:plan[0], status:'ACTIVE', startDate:'2026-09-26', expiryDate:'2027-09-26', nextBillDate:'2026-11-26', paymentTermsDays:15, lines:[{id:3, description:'Analytics Add-on', quantity:4, unitPrice:400, taxRate:18}, {id:4, description:'Plan fee – Pro Monthly', quantity:1, unitPrice:500, taxRate:18}]},
+    {id:3, subscriptionNo:'SUB-0003', customer:users[3], plan:plan[1], status:'ACTIVE', startDate:'2026-10-21', expiryDate:'2027-10-21', nextBillDate:'2027-10-21', paymentTermsDays:30, lines:[{id:5, description:'Brightloop CRM', quantity:6, unitPrice:1200, taxRate:18}, {id:6, description:'Plan fee – Enterprise Yearly', quantity:1, unitPrice:5000, taxRate:18}]},
+    {id:4, subscriptionNo:'SUB-0004', customer:users[2], plan:plan[0], status:'DRAFT', startDate:td(), expiryDate:'2027-10-31', nextBillDate:td(), paymentTermsDays:15, lines:[{id:7, description:'Priority Support', quantity:2, unitPrice:250, taxRate:5}]}
+  ];
+  const inv = [
+    {id:1, invoiceNo:'INV-00001', billingKey:'1@2026-10-31', subscriptionId:1, customerId:3, customerName:'Acme Retail', customerEmail:'cust@acme.com', invoiceDate:td(), dueDate:'2026-11-15', subtotal:21620, discountAmount:0, taxAmount:3891.60, total:25511.60, paidAmount:5000, balance:20511.60, status:'CONFIRMED', sent:false, lines:[{description:'Brightloop CRM (Brand: Odoo)', quantity:12, unitPrice:1760, taxRate:18, lineTotal:21120}, {description:'Plan fee – Pro Monthly', quantity:1, unitPrice:500, taxRate:18, lineTotal:500}]}
+  ];
+  const pay = [
+    {id:1, invoiceId:1, invoiceNo:'INV-00001', customerName:'Acme Retail', amount:5000, method:'UPI', paymentDate:td(), note:'Partial payment via UPI'}
+  ];
+  S = { prod, plan, tax, subs, inv, pay, users, dash: {} };
+  saveDemo();
+}
+
+function saveDemo() {
+  try { localStorage.setItem('bl_demo_data', JSON.stringify(S)); } catch(e){}
+}
+
+function updateDemoDash() {
+  const act = S.subs.filter(s=>s.status==='ACTIVE'||s.status==='Active');
+  const mrr = act.reduce((a,s)=>{
+    const sub = (s.lines||[]).reduce((t,l)=>t+l.quantity*l.unitPrice, 0);
+    const p = s.plan?.billingPeriod || 'MONTHLY';
+    const mult = p==='DAILY'?30 : p==='WEEKLY'?4.33 : p==='YEARLY'?1/12 : 1;
+    return a + sub * mult;
+  }, 0);
+  const collected = S.pay.reduce((a,p)=>a+(+p.amount||0), 0);
+  const owed = S.inv.filter(i=>i.status==='CONFIRMED'||i.status==='Confirmed').reduce((a,i)=>a+(+i.balance||0), 0);
+  const overdue = S.inv.filter(i=>(i.status==='CONFIRMED'||i.status==='Confirmed') && i.dueDate < td()).length;
+  S.dash = { activeSubscriptions: act.length, monthlyRecurringRevenue: mrr, revenueCollected: collected, outstandingAmount: owed, overdueInvoiceCount: overdue };
+}
+
 async function loadData() {
   if (!U) return;
+  if (isDemoMode) {
+    initDemoData();
+    updateDemoDash();
+    return;
+  }
   try {
     const [p, pl, tx, su, iv, py, us, ds] = await Promise.all([
       req('/products').catch(() => []),
@@ -117,13 +179,15 @@ async function loadData() {
     S.users = us;
     S.dash = ds;
   } catch(e) {
-    toast(e.message);
+    console.warn('Backend unavailable, switching to demo mode:', e.message);
+    isDemoMode = true;
+    initDemoData();
+    updateDemoDash();
   }
 }
 
 const by=(a,id)=>S[a]?.find(x=>x.id==id)||{};
 const pill=(s)=>`<span class="p ${{PAID:'ok',Paid:'ok',ACTIVE:'ok',Active:'ok',OVERDUE:'er',Overdue:'er',CANCELLED:'er',Cancelled:'er',CLOSED:'er',Closed:'er',PAUSED:'wr',Paused:'wr',CONFIRMED:'',Confirmed:'',DRAFT:'wr',Draft:'wr',QUOTATION:'wr',Quotation:'wr'}[s]??''}">${s}</span>`;
-const can=r=>U?.role==r||(r=='STAFF'&&U?.role=='ADMIN');
 const NAV={ADMIN:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans'],['tax','Taxes'],['users','Users']],STAFF:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans']],CUSTOMER:[['home','My account']]};
 
 function go(p){page=p;Q='';PG=0;rr()}
@@ -149,6 +213,25 @@ function subAct(s){
 }
 
 async function doSubAct(id, act){
+  if (isDemoMode) {
+    const s = S.subs.find(x=>x.id==id);
+    if (s) {
+      if (act==='CONFIRM') s.status = 'CONFIRMED';
+      else if (act==='ACTIVATE') { s.status = 'ACTIVE'; if (!s.nextBillDate) s.nextBillDate = td(); }
+      else if (act==='PAUSE') s.status = 'PAUSED';
+      else if (act==='RESUME') s.status = 'ACTIVE';
+      else if (act==='CLOSE') s.status = 'CLOSED';
+      else if (act==='RENEW') {
+        const d = new Date(s.expiryDate); d.setFullYear(d.getFullYear()+1);
+        s.expiryDate = d.toISOString().slice(0,10);
+        s.status = 'ACTIVE';
+      }
+      saveDemo();
+      toast('Subscription updated');
+      rr();
+    }
+    return;
+  }
   try {
     await req(`/subscriptions/${id}/action`, { method: 'PUT', body: JSON.stringify({ action: act }) });
     toast('Subscription updated');
@@ -170,6 +253,10 @@ async function doInvAct(id, a){
   const i=S.inv.find(x=>x.id==id);
   if(a=='send'){ toast(`Invoice ${i.invoiceNo} sent to ${i.customerEmail||'customer'}`); return; }
   if(a=='pay'){ payForm(i); return; }
+  if (isDemoMode) {
+    if (i) { i.status = a; saveDemo(); toast(`Invoice status updated to ${a}`); rr(); }
+    return;
+  }
   try {
     await req(`/invoices/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: a }) });
     toast(`Invoice status updated to ${a}`);
@@ -186,6 +273,17 @@ function payForm(i){
     {k:'note', l:'Note'}
   ], async (v)=>{
     if(!(v.amount>0) || v.amount > i.balance + 0.01) { toast('Enter an amount up to ' + fm(i.balance)); return false; }
+    if (isDemoMode) {
+      S.pay.unshift({ id: Date.now(), invoiceId: i.id, invoiceNo: i.invoiceNo, customerName: i.customerName, amount: +v.amount, method: v.method, paymentDate: v.paymentDate, note: v.note });
+      i.paidAmount = (+i.paidAmount||0) + (+v.amount);
+      i.balance = Math.max(0, i.total - i.paidAmount);
+      if (i.balance < 0.01) i.status = 'PAID';
+      else if (i.status === 'DRAFT') i.status = 'CONFIRMED';
+      saveDemo();
+      toast('Payment recorded successfully');
+      rr();
+      return;
+    }
     try {
       await req('/payments', {
         method: 'POST',
@@ -223,7 +321,7 @@ function viewInv(id){
     <h3>Invoice ${esc(i.invoiceNo)}</h3>
     <p>${esc(i.customerName)} · ${esc(i.customerEmail)}<br>Date ${i.invoiceDate} · Due ${i.dueDate} · ${pill(isOverdue?'Overdue':i.status)}</p>
     <div class=tw><table style="min-width:0"><tr><th>Item<th>Qty<th>Price<th>Tax<th>Amount</tr>
-    ${(i.lines||[]).map(l=>`<tr><td>${esc(l.description)}<td>${l.quantity}<td>${fm(l.unitPrice)}<td>${l.taxRate}%<td>${fm(l.lineTotal)}</tr>`).join('')}
+    ${(i.lines||[]).map(l=>`<tr><td>${esc(l.description)}<td>${l.quantity}<td>${fm(l.unitPrice)}<td>${l.taxRate}%<td>${fm(l.lineTotal || l.quantity*l.unitPrice)}</tr>`).join('')}
     </table></div>
     <p style="text-align:right">Subtotal ${fm(i.subtotal)}<br>Tax ${fm(i.taxAmount)}<br><b style="font-size:18px">Total ${fm(i.total)}</b><br>Paid ${fm(i.paidAmount)}<br>Balance ${fm(i.balance)}</p>
     <div class=row><button class=btn onclick=cm()>Close</button><button class="btn pr" onclick=window.print()>Print</button></div>
@@ -233,6 +331,7 @@ function viewInv(id){
 
 const P={
   dash(){
+    updateDemoDash();
     const d = S.dash || {};
     const actCount = d.activeSubscriptions ?? S.subs.filter(s=>s.status=='ACTIVE'||s.status=='Active').length;
     const mrr = d.monthlyRecurringRevenue ?? 0;
@@ -242,7 +341,7 @@ const P={
     const ov = S.inv.filter(i=>(i.status=='CONFIRMED'||i.status=='Confirmed') && i.dueDate < td());
 
     const mo=[]; for(let k=5;k>=0;k--){const dt=new Date();dt.setMonth(dt.getMonth()-k);mo.push(dt.toISOString().slice(0,7))}
-    const v=mo.map(m=>S.pay.filter(p=>p.paymentDate?.startsWith(m)).reduce((a,p)=>a+(+p.amount||0),0)),mx=Math.max(...v,1);
+    const v=mo.map(m=>S.pay.filter(p=>(p.paymentDate||'').startsWith(m)).reduce((a,p)=>a+(+p.amount||0),0)),mx=Math.max(...v,1);
 
     return head('Dashboard')+`<div class=fl><label>From<input type=date value="${F.f||''}" onchange="F.f=this.value;loadData().then(rr)"></label><label>To<input type=date value="${F.t||''}" onchange="F.t=this.value;loadData().then(rr)"></label></div>
     <div class=kp>
@@ -378,6 +477,16 @@ const P={
 async function customerPayOnline(id){
   const i = S.inv.find(x=>x.id==id);
   if(!i) return;
+  if (isDemoMode) {
+    S.pay.unshift({ id: Date.now(), invoiceId: i.id, invoiceNo: i.invoiceNo, customerName: i.customerName, amount: i.balance, method: 'CARD', paymentDate: td(), note: 'Paid via customer portal' });
+    i.paidAmount = i.total;
+    i.balance = 0;
+    i.status = 'PAID';
+    saveDemo();
+    toast('Payment received. Thank you!');
+    rr();
+    return;
+  }
   try {
     await req('/payments', {
       method: 'POST',
@@ -396,6 +505,43 @@ async function customerPayOnline(id){
 }
 
 async function runBillingAction(){
+  if (isDemoMode) {
+    let created = 0;
+    S.subs.filter(s=>s.status==='ACTIVE'||s.status==='Active').forEach(s=>{
+      const key = s.id + '@' + (s.nextBillDate || td());
+      if (!S.inv.some(i=>i.billingKey===key)) {
+        const lines = (s.lines||[]).map(l=>({ ...l, lineTotal: l.quantity*l.unitPrice }));
+        const sub = lines.reduce((a,l)=>a+l.lineTotal, 0);
+        const tax = lines.reduce((a,l)=>a+l.lineTotal*(l.taxRate||18)/100, 0);
+        const invNo = 'INV-' + String(S.inv.length+1).padStart(5,'0');
+        S.inv.push({
+          id: Date.now() + created,
+          invoiceNo: invNo,
+          billingKey: key,
+          subscriptionId: s.id,
+          customerId: s.customer?.id || 3,
+          customerName: s.customer?.name || 'Customer',
+          customerEmail: s.customer?.email || 'customer@acme.com',
+          invoiceDate: s.nextBillDate || td(),
+          dueDate: new Date(Date.now()+15*864e5).toISOString().slice(0,10),
+          subtotal: sub,
+          discountAmount: 0,
+          taxAmount: tax,
+          total: sub + tax,
+          paidAmount: 0,
+          balance: sub + tax,
+          status: 'DRAFT',
+          sent: false,
+          lines
+        });
+        created++;
+      }
+    });
+    saveDemo();
+    toast(created ? `${created} invoice(s) generated!` : 'Nothing due — no duplicates created.');
+    rr();
+    return;
+  }
   try {
     const res = await req('/invoices/billing/run', { method: 'POST' });
     toast(res.invoicesCreated ? `${res.invoicesCreated} invoice(s) generated!` : 'Nothing due — no duplicates created.');
@@ -416,6 +562,14 @@ function newProdModal(){
   ], async (v)=>{
     if(!v.name || v.salePrice <= 0) { toast('Name and valid sale price required'); return false; }
     const variants = (v.vr||'').split(',').map(x=>x.split('=')).filter(x=>x[0].trim()).map(x=>({name:'Brand: '+x[0].trim(), priceAddon:+x[1]||0}));
+    if (isDemoMode) {
+      const tax = S.tax.find(t=>t.id==v.taxId) || S.tax[0];
+      S.prod.push({ id: Date.now(), name: v.name, type: v.type, salePrice: +v.salePrice, costPrice: +v.costPrice, notes: v.notes, tax, variants });
+      saveDemo();
+      toast('Product created');
+      rr();
+      return;
+    }
     try {
       await req('/products', {
         method: 'POST',
@@ -438,6 +592,13 @@ function newProdModal(){
 
 async function deleteProd(id){
   if(!confirm('Delete this product?')) return;
+  if (isDemoMode) {
+    S.prod = S.prod.filter(p=>p.id!=id);
+    saveDemo();
+    toast('Product deleted');
+    rr();
+    return;
+  }
   try { await req(`/products/${id}`, { method: 'DELETE' }); toast('Product deleted'); await loadData(); rr(); }
   catch(e) { toast(e.message); }
 }
@@ -456,6 +617,13 @@ function newPlanModal(){
     {k:'canRenew', l:'Can be renewed', t:'check', v:1}
   ], async (v)=>{
     if(!v.name || v.availableTo < v.availableFrom) { toast('Valid name and dates required'); return false; }
+    if (isDemoMode) {
+      S.plan.push({ id: Date.now(), ...v, price: +v.price, minQty: +v.minQty });
+      saveDemo();
+      toast('Plan created');
+      rr();
+      return;
+    }
     try {
       await req('/plans', { method: 'POST', body: JSON.stringify(v) });
       toast('Plan created');
@@ -467,6 +635,13 @@ function newPlanModal(){
 
 async function deletePlan(id){
   if(!confirm('Delete this plan?')) return;
+  if (isDemoMode) {
+    S.plan = S.plan.filter(p=>p.id!=id);
+    saveDemo();
+    toast('Plan deleted');
+    rr();
+    return;
+  }
   try { await req(`/plans/${id}`, { method: 'DELETE' }); toast('Plan deleted'); await loadData(); rr(); }
   catch(e) { toast(e.message); }
 }
@@ -477,6 +652,13 @@ function newTaxModal(){
     {k:'rate', l:'Rate %', t:'number'}
   ], async (v)=>{
     if(!v.name) { toast('Name required'); return false; }
+    if (isDemoMode) {
+      S.tax.push({ id: Date.now(), name: v.name, rate: +v.rate });
+      saveDemo();
+      toast('Tax created');
+      rr();
+      return;
+    }
     try {
       await req('/taxes', { method: 'POST', body: JSON.stringify(v) });
       toast('Tax created');
@@ -488,6 +670,13 @@ function newTaxModal(){
 
 async function deleteTax(id){
   if(!confirm('Delete this tax?')) return;
+  if (isDemoMode) {
+    S.tax = S.tax.filter(t=>t.id!=id);
+    saveDemo();
+    toast('Tax deleted');
+    rr();
+    return;
+  }
   try { await req(`/taxes/${id}`, { method: 'DELETE' }); toast('Tax deleted'); await loadData(); rr(); }
   catch(e) { toast(e.message); }
 }
@@ -500,6 +689,13 @@ function newUserModal(){
   ], async (v)=>{
     v.email = (v.email||'').trim().toLowerCase();
     if(!v.name || !/^\S+@\S+\.\S+$/.test(v.email)) { toast('Valid name and email required'); return false; }
+    if (isDemoMode) {
+      S.users.push({ id: Date.now(), name: v.name, email: v.email, role: 'STAFF' });
+      saveDemo();
+      toast('Staff member added');
+      rr();
+      return;
+    }
     try {
       await req('/users', { method: 'POST', body: JSON.stringify({ ...v, role: 'STAFF' }) });
       toast('Staff member added');
@@ -511,6 +707,13 @@ function newUserModal(){
 
 async function deleteUser(id){
   if(!confirm('Delete user?')) return;
+  if (isDemoMode) {
+    S.users = S.users.filter(u=>u.id!=id);
+    saveDemo();
+    toast('User deleted');
+    rr();
+    return;
+  }
   try { await req(`/users/${id}`, { method: 'DELETE' }); toast('User deleted'); await loadData(); rr(); }
   catch(e) { toast(e.message); }
 }
@@ -553,6 +756,27 @@ function newSubModal(){
       });
     }
 
+    if (isDemoMode) {
+      const cust = S.users.find(u=>u.id==v.customerId) || custs[0];
+      const subNo = 'SUB-' + String(S.subs.length+1).padStart(4,'0');
+      S.subs.push({
+        id: Date.now(),
+        subscriptionNo: subNo,
+        customer: cust,
+        plan,
+        startDate: v.startDate,
+        expiryDate: v.expiryDate,
+        nextBillDate: v.startDate,
+        paymentTermsDays: +v.paymentTermsDays,
+        status: 'DRAFT',
+        lines
+      });
+      saveDemo();
+      toast('Subscription created');
+      rr();
+      return;
+    }
+
     try {
       await req('/subscriptions', {
         method: 'POST',
@@ -590,7 +814,7 @@ const cm=()=>$('#md').className='md';
 
 function authH(){
   const up=tab=='up';
-  return`<div class="au${AP?' st':''}"><div class=hero><i class="blob b1"></i><i class="blob b2"></i><div class="lg a" onclick=goL() style="font-size:22px;margin-bottom:34px;cursor:pointer" title="Back to home">◐ Brightloop</div><h1><span class=a style="--d:.1s">Recurring revenue,</span><br><span class=a style="--d:.26s">on autopilot.</span></h1><p class=a style="--d:.4s">Plans, subscriptions, invoices and payments in one place. No spreadsheets, no missed renewals.</p><div class=a style="--d:.55s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹6,490'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created for you</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div><div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>Discount rules</span><span>Overdue alerts</span><span>Customer portal</span><span>Revenue reports</span>'.repeat(4)}</div></div></div><div class=fm><button class="btn ic" title="Toggle dark mode" onclick=tgl() style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:5">${isDark()?'☀':'☾'}</button><div class=tabs><a class="${up?'':'on'}" onclick="tab='in';rr()">Sign in</a><a class="${up?'on':''}" onclick="tab='up';rr()">Create account</a></div>${up?'<label>Company or full name<input id=an></label>':''}<label>Email<input id=ae type=email></label><label>Password<input id=ap type=password onkeydown="event.key=='Enter'&&auth()"></label><div class=err id=ar></div><button class="btn pr" onclick="auth()">${up?'Create account':'Sign in'}</button>${up?'<div class=demo>Secure password with upper, lower and special characters.</div>':`<div class=demo style="margin-top:20px;line-height:1.7;background:var(--ac2);padding:10px 14px;border-radius:10px"><b>Quick Demo Logins:</b><br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('admin@brightloop.io','Admin@1234')">admin@brightloop.io</a> / Admin@1234 (Admin)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('staff@brightloop.io','Staff@1234')">staff@brightloop.io</a> / Staff@1234 (Staff)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('cust@acme.com','Cust@12345')">cust@acme.com</a> / Cust@12345 (Customer)</div>`}</div></div>`;
+  return`<div class="au${AP?' st':''}"><div class=hero><i class="blob b1"></i><i class="blob b2"></i><div class="lg a" onclick=goL() style="font-size:22px;margin-bottom:34px;cursor:pointer" title="Back to home">◐ Brightloop</div><h1><span class=a style="--d:.1s">Recurring revenue,</span><br><span class=a style="--d:.26s">on autopilot.</span></h1><p class=a style="--d:.4s">Plans, subscriptions, invoices and payments in one place. No spreadsheets, no missed renewals.</p><div class=a style="--d:.55s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹25,511.60'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div><div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>REST APIs</span><span>Spring Boot</span><span>MySQL Engine</span><span>Revenue reports</span>'.repeat(4)}</div></div></div><div class=fm><button class="btn ic" title="Toggle dark mode" onclick=tgl() style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:5">${isDark()?'☀':'☾'}</button><div class=tabs><a class="${up?'':'on'}" onclick="tab='in';rr()">Sign in</a><a class="${up?'on':''}" onclick="tab='up';rr()">Create account</a></div>${up?'<label>Company or full name<input id=an></label>':''}<label>Email<input id=ae type=email></label><label>Password<input id=ap type=password onkeydown="event.key=='Enter'&&auth()"></label><div class=err id=ar></div><button class="btn pr" onclick="auth()">${up?'Create account':'Sign in'}</button>${up?'<div class=demo>Secure password with upper, lower and special characters.</div>':`<div class=demo style="margin-top:20px;line-height:1.7;background:var(--ac2);padding:10px 14px;border-radius:10px"><b>Quick Demo Logins:</b><br><a style="cursor:pointer;color:var(--ac);font-weight:600" onclick="fillLogin('admin@brightloop.io','Admin@1234')">admin@brightloop.io</a> / Admin@1234 (Admin)<br><a style="cursor:pointer;color:var(--ac);font-weight:600" onclick="fillLogin('staff@brightloop.io','Staff@1234')">staff@brightloop.io</a> / Staff@1234 (Staff)<br><a style="cursor:pointer;color:var(--ac);font-weight:600" onclick="fillLogin('cust@acme.com','Cust@12345')">cust@acme.com</a> / Cust@12345 (Customer)</div>`}</div></div>`;
 }
 
 function fillLogin(e, p){
@@ -602,6 +826,12 @@ function fillLogin(e, p){
 async function auth(){
   const e=$('#ae').value.trim().toLowerCase(), p=$('#ap').value, R=m=>$('#ar').textContent=m;
   R('');
+
+  // If in demo mode (e.g. GitHub Pages preview without local backend)
+  if (isDemoMode) {
+    return authLocal(e, p, R);
+  }
+
   try {
     if(tab=='up'){
       const n=$('#an').value.trim();
@@ -620,8 +850,39 @@ async function auth(){
     await loadData();
     rr();
   } catch(err) {
-    R(err.message);
+    console.warn('API auth failed, attempting demo fallback:', err);
+    // If backend connection fails (e.g. Mixed Content on GitHub Pages), seamlessly fall back to demo mode!
+    isDemoMode = true;
+    authLocal(e, p, R);
   }
+}
+
+function authLocal(e, p, R) {
+  initDemoData();
+  const demoUsers = {
+    'admin@brightloop.io': { id:1, name:'Asha Admin', role:'ADMIN', pw:'Admin@1234' },
+    'staff@brightloop.io': { id:2, name:'Purnava Staff', role:'STAFF', pw:'Staff@1234' },
+    'cust@acme.com': { id:3, name:'Acme Retail', role:'CUSTOMER', pw:'Cust@12345' },
+    'ops@globex.com': { id:4, name:'Globex Corp', role:'CUSTOMER', pw:'Globex@1234' }
+  };
+  if (tab === 'up') {
+    const n = $('#an').value.trim();
+    if(!n||!/^\S+@\S+\.\S+$/.test(e)) return R('Enter your name and a valid email.');
+    const newUser = { id: Date.now(), name: n, email: e, role: 'CUSTOMER' };
+    S.users.push(newUser);
+    saveDemo();
+    U = newUser;
+  } else {
+    const found = demoUsers[e] || S.users.find(u=>u.email===e);
+    if (!found || (found.pw && found.pw !== p)) {
+      return R('Email or password is incorrect. Click a Quick Demo Login below.');
+    }
+    U = { id: found.id, name: found.name, email: found.email, role: found.role };
+  }
+  localStorage.setItem('bl_u', JSON.stringify(U));
+  page = NAV[U.role][0][0];
+  updateDemoDash();
+  rr();
 }
 
 function out(){
@@ -647,7 +908,9 @@ function landH(){
   const li=!!U,ctas=li?`<button class="btn pr" onclick=goD()>Open dashboard</button>`:`<button class="btn pr" onclick="goA('up')">Get started free</button><button class=btn onclick="goA('in')">Sign in</button>`;
   const F=[['◈','Products, variants and plans','Price by brand or variant, bill daily to yearly, and decide plan by plan what can pause, renew or close.'],['⟲','Quote to subscription','Start from a template, then move through Draft, Quotation, Confirmed, Active and Closed. Everyone sees the status.'],['⚡','Invoices that write themselves','One click bills every due subscription with lines, taxes and totals filled in. Nothing is billed twice or skipped.'],['%','Taxes and discounts','Set the rules once. Subtotals, taxes and totals are calculated strictly on the backend.'],['₹','Payments and overdue tracking','Record payments via UPI, Card, Cash, Bank Transfer and Cheque. Outstanding balances auto-calculate.'],['▦','Dashboard and customer portal','Real-time MRR, collected revenue, outstanding balances, and self-service customer portal.']];
   const steps=[['Set up','Products, plans, taxes'],['Quote','From customer order'],['Activate','Confirm and go live'],['Bill','One click, server-verified'],['Collect','UPI, Card, Bank transfer']];
-  return`<div class=lp><div class=lh><i class="blob b1"></i><i class="blob b2"></i><div class=ln><div class=lg onclick=goL()>◐ Brightloop</div><div><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button>${li?`<button class=btn onclick=out()>Sign out</button><button class="btn pr" onclick=goD()>Dashboard</button>`:`<button class=btn onclick="goA('in')">Sign in</button><button class="btn pr" onclick="goA('up')">Get started</button>`}</div></div>
+  return`<div class=lp>
+  ${isDemoMode ? `<div class="banner"><span>☁️ <b>GitHub Pages Preview Mode</b> (Running with client demo storage)</span><span>To test the live Java Spring Boot + MySQL backend, run locally on <a href="http://localhost:8080" target="_blank" style="color:var(--ac);font-weight:600">http://localhost:8080</a></span></div>` : ''}
+  <div class=lh><i class="blob b1"></i><i class="blob b2"></i><div class=ln><div class=lg onclick=goL()>◐ Brightloop</div><div><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button>${li?`<button class=btn onclick=out()>Sign out</button><button class="btn pr" onclick=goD()>Dashboard</button>`:`<button class=btn onclick="goA('in')">Sign in</button><button class="btn pr" onclick="goA('up')">Get started</button>`}</div></div>
   <div><h1><span class=a style="--d:.1s">Subscriptions,</span><br><span class=a style="--d:.26s">billed while you sleep.</span></h1><p class=a style="--d:.4s">Plans, renewals, invoices and payments in one system. No spreadsheets, no hand-typed invoices, no missed renewals.</p><div class="cta a" style="--d:.55s">${ctas}</div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div></div>
   <div class=a style="--d:.5s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹25,511.60'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div>
   <div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>REST APIs</span><span>Spring Boot</span><span>MySQL Engine</span><span>Revenue reports</span>'.repeat(4)}</div></div></div>
@@ -671,7 +934,8 @@ function rr(f){
   document.documentElement.dataset.mode=isDark()?'d':'l';
   if(L){ a.innerHTML=landH(); cnt(false); io(); return; }
   if(!U){ const first=!AP; a.innerHTML=authH(); cnt(!first); AP=true; return; }
-  a.innerHTML=`<div class=sh><aside><div class=lg onclick=goL() style="cursor:pointer" title="Back to home">◐ Brightloop</div>${(NAV[U.role]||[]).map(n=>`<a class="${page==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('')}</aside><main><div class=tb><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button><div class=chip><span class=av>${esc(U.name[0]).toUpperCase()}</span>${esc(U.name)}<small style="margin-left:6px;text-transform:lowercase">${U.role}</small></div><button class=btn onclick=out()>Sign out</button></div>${P[page]?P[page]():P.dash()}</main></div>`;
+  a.innerHTML=`${isDemoMode ? `<div class="banner"><span>☁️ <b>GitHub Pages Preview Mode</b> (Client Demo Storage)</span><span>Run locally on <a href="http://localhost:8080" target="_blank" style="color:var(--ac);font-weight:600">http://localhost:8080</a> for full Java Spring Boot + MySQL backend</span></div>` : ''}
+  <div class=sh><aside><div class=lg onclick=goL() style="cursor:pointer" title="Back to home">◐ Brightloop</div>${(NAV[U.role]||[]).map(n=>`<a class="${page==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('')}</aside><main><div class=tb><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button><div class=chip><span class=av>${esc(U.name[0]).toUpperCase()}</span>${esc(U.name)}<small style="margin-left:6px;text-transform:lowercase">${U.role}</small></div><button class=btn onclick=out()>Sign out</button></div>${P[page]?P[page]():P.dash()}</main></div>`;
   if(f){ const e=$('.sr'); if(e){ e.focus(); e.setSelectionRange(1e3,1e3); } }
 }
 
@@ -679,7 +943,7 @@ function rr(f){
   try{ const th=localStorage.getItem('bl_theme'); if(th) document.documentElement.dataset.theme=th; }catch(e){}
   try{
     const cachedU = localStorage.getItem('bl_u');
-    if(cachedU && token) {
+    if(cachedU) {
       U = JSON.parse(cachedU);
       page = NAV[U.role]?.[0]?.[0] || 'dash';
       L = false;
