@@ -42,7 +42,6 @@ html,body{height:100%;margin:0}*{box-sizing:border-box}body{background:var(--bg)
 h1,h2,h3,.lg{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;margin:0}
 .sh{display:flex;min-height:100%}aside{width:230px;background:var(--sf);border-right:1px solid var(--bd);color:var(--tx);padding:20px 14px;display:flex;flex-direction:column;gap:3px;position:sticky;top:0;height:100vh;flex:none}
 aside .lg{font-size:21px;color:var(--tx);padding:2px 10px 20px;font-weight:800}aside a{padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--mu);font-weight:500}aside a:hover{background:var(--bg);color:var(--tx)}aside a.on{background:var(--ac2);color:var(--ac)}
-
 main{flex:1;padding:26px 30px;min-width:0;max-width:1250px}
 .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}.hd h2{font-size:26px;font-weight:800}
 .btn{border:1px solid var(--bd);background:var(--sf);color:var(--tx);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-weight:500}.btn:hover{border-color:var(--ac)}.btn.pr{background:var(--ac);border-color:var(--ac);color:#fff}.btn.sm{padding:3px 8px;font-size:12px;margin:1px}.btn.dn{color:var(--er)}
@@ -62,103 +61,624 @@ label{display:block;color:var(--mu);font-size:12px;margin-bottom:8px}label input
 @media print{body>*:not(#md){display:none!important}.md{position:static;background:none;display:block}.row{display:none}}
 </style></head><body><div id="app"></div><div id="md" class="md"></div><div id="ts"></div>
 <script>
-const K='bl_v2',$=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10),uid=()=>Math.random().toString(36).slice(2,9);
-const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
-const addP=(d,p)=>{const x=new Date(d);p=='daily'?x.setDate(x.getDate()+1):p=='weekly'?x.setDate(x.getDate()+7):p=='monthly'?x.setMonth(x.getMonth()+1):x.setFullYear(x.getFullYear()+1);return x.toISOString().slice(0,10)};
+const API_BASE = 'http://localhost:8080/api';
+const $=s=>document.querySelector(s),td=()=>new Date().toISOString().slice(0,10);
 const fm=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let S,U=null,page='dash',Q='',PG=0,F={},tab='in';
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-const by=(a,id)=>S[a].find(x=>x.id==id)||{},toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
-async function hs(p){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bl'+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-const pwOk=p=>p.length>8&&/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[^A-Za-z0-9]/.test(p);
-const ST=['Draft','Quotation','Confirmed','Active','Closed'];
-const sub$=s=>s.lines.reduce((a,l)=>a+l.q*l.p,0),rate=l=>by('tax',l.tid).rate||0;
-const paid=i=>S.pay.filter(p=>p.inv==i.id).reduce((a,p)=>a+p.amt,0),bal=i=>Math.max(0,i.total-paid(i));
-const od=i=>i.status=='Confirmed'&&i.due<td();
-const combos=()=>S.prod.flatMap(p=>[[p.id+'|',p.name],...p.vars.map((v,i)=>[p.id+'|'+i,`${p.name} — ${v.n} (+${v.x})`])]);
-const line=(c,q)=>{const[pid,vi]=c.split('|'),p=by('prod',pid),v=vi!==''?p.vars[vi]:null;return{pid,n:p.name+(v?` (${v.n})`:''),q,p:p.sale+(v?v.x:0),tid:p.tid}};
-async function seed(){const h=await hs,P=async p=>hs(p);
- const T=[{id:'t1',n:'GST 18%',rate:18},{id:'t2',n:'GST 5%',rate:5}];
- const prod=[{id:'p1',name:'Brightloop CRM',type:'Software',sale:1200,cost:400,notes:'Core CRM seat',tid:'t1',vars:[{n:'Brand: Odoo',x:560},{n:'Brand: Zoho',x:300}]},{id:'p2',name:'Analytics Add-on',type:'Add-on',sale:400,cost:120,notes:'',tid:'t1',vars:[]},{id:'p3',name:'Priority Support',type:'Service',sale:250,cost:80,notes:'',tid:'t2',vars:[]}];
- const plans=[{id:'pl1',name:'Pro Monthly',price:500,per:'monthly',minQty:1,from:'2026-01-01',to:'2027-12-31',auto:false,pause:true,close:true,renew:true},{id:'pl2',name:'Enterprise Yearly',price:5000,per:'yearly',minQty:5,from:'2026-01-01',to:'2027-12-31',auto:true,pause:false,close:false,renew:true}];
- const users=[{id:'u1',name:'Asha Admin',email:'admin@brightloop.io',role:'admin',pw:await P('Admin@1234')},{id:'u2',name:'Purnava',email:'staff@brightloop.io',role:'staff',pw:await P('Staff@1234')},{id:'c1',name:'Acme Retail',email:'cust@acme.com',role:'customer',pw:await P('Cust@12345')},{id:'c2',name:'Globex Corp',email:'ops@globex.com',role:'customer',pw:await P('Globex@1234')}];
- const L=(c,q)=>line.call(null,c,q);S={tax:T,prod,plan:plans,disc:[{id:'d1',n:'Volume 10%',type:'pct',val:10,minAmt:0,minQty:10,from:'2026-01-01',to:'2027-12-31',limit:50,used:0,tg:''}],tpl:[{id:'tp1',n:'SMB CRM Starter',plan:'pl1',combo:'p1|',qty:3,days:15}],users,subs:[],inv:[],pay:[],seq:1,sseq:1};
- const mk=(cust,plan,combo,q,start,st)=>{S.prod=prod;const pl=by('plan',plan),l=[line(combo,q)];if(pl.price)l.unshift({pid:null,n:'Plan fee – '+pl.name,q:1,p:pl.price,tid:'t1'});S.subs.push({id:uid(),no:'SUB-'+String(S.sseq++).padStart(4,'0'),cust,plan,start,exp:addD(start,365),terms:15,lines:l,status:st,next:start,qv:null})};
- mk('c1','pl1','p1|0',12,addD(td(),-70),'Active');mk('c2','pl1','p2|',4,addD(td(),-35),'Active');mk('c2','pl2','p1|',6,addD(td(),-10),'Active');mk('c1','pl1','p3|',2,td(),'Draft');bill();return S}
-function mkInv(s,k){const t=td();let sub=sub$(s),d=0,dn=[];
- for(const x of S.disc){if(!(x.from<=t&&t<=x.to)||x.used>=x.limit)continue;if(x.tg[0]=='S'&&x.tg.slice(1)!=s.id)continue;const ls=x.tg[0]=='P'?s.lines.filter(l=>l.pid==x.tg.slice(1)):s.lines;const b=ls.reduce((a,l)=>a+l.q*l.p,0),q=ls.reduce((a,l)=>a+l.q,0);if(!ls.length||b<x.minAmt||q<x.minQty)continue;d+=x.type=='pct'?b*x.val/100:Math.min(x.val,b);dn.push(x.n);x.used++}
- d=Math.min(d,sub);const tx=s.lines.reduce((a,l)=>a+l.q*l.p*rate(l)/100,0)*(sub?1-d/sub:1);
- return{id:uid(),no:'INV-'+String(S.seq++).padStart(5,'0'),key:k,sub:s.id,cust:s.cust,date:s.next,due:addD(s.next,s.terms),lines:s.lines.map(l=>({...l,r:rate(l)})),subtotal:sub,disc:d,dn:dn.join(', '),tax:tx,total:sub-d+tx,status:'Draft',sent:false}}
-function bill(){let n=0;const t=td();S.subs.filter(s=>s.status=='Active').forEach(s=>{let g=0;while(s.next<=t&&s.next<=s.exp&&g++<36){const k=s.id+'@'+s.next;if(!S.inv.some(i=>i.key==k)){S.inv.push(mkInv(s,k));n++}s.next=addP(s.next,by('plan',s.plan).per)}});save();return n}
-function tick(){S.subs.forEach(s=>{if(by('plan',s.plan).auto&&s.exp<td()&&s.status=='Active')s.status='Closed'})}
-function modal(t,fs,cb,ok='Save'){const m=$('#md');m.innerHTML=`<div class=mb><h3>${t}</h3>${fs.map(f=>`<label>${f.l}${f.t=='select'?`<select id=f_${f.k}>${f.o.map(o=>`<option value="${esc(o[0])}" ${o[0]==f.v?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:f.t=='check'?`<input type=checkbox id=f_${f.k} ${f.v?'checked':''}>`:`<input id=f_${f.k} type=${f.t||'text'} value="${esc(f.v??'')}">`}</label>`).join('')}<div class=row><button class=btn onclick=cm()>Cancel</button><button class="btn pr" onclick=sv()>${ok}</button></div></div>`;m.className='md on';window.sv=()=>{const v={};fs.forEach(f=>{const e=$('#f_'+f.k);v[f.k]=f.t=='check'?e.checked:f.t=='number'?+e.value:e.value});if(cb(v)!==false){cm();save();rr()}}}
-const cm=()=>$('#md').className='md',err=m=>{toast(m);return false};
-const pill=(s)=>`<span class="p ${{Paid:'ok',Active:'ok',Overdue:'er',Cancelled:'er',Closed:'er',Paused:'wr',Confirmed:'',Draft:'wr',Quotation:'wr'}[s]??''}">${s}</span>`;
-const can=r=>U.role==r||(r=='staff'&&U.role=='admin');
-const NAV={admin:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans'],['tpl','Templates'],['disc','Discounts'],['tax','Taxes'],['users','Users']],staff:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans'],['tpl','Templates']],customer:[['home','My account']]};
+const toast=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)};
+
+let U = null, token = localStorage.getItem('bl_jwt') || null;
+let page='dash', Q='', PG=0, F={}, tab='in', AP=false, L=true;
+
+// In-memory data synced from backend
+let S = { prod: [], plan: [], tax: [], subs: [], inv: [], pay: [], users: [], dash: {} };
+
+async function req(path, opt = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opt.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const res = await fetch(API_BASE + path, { ...opt, headers });
+    if (res.status === 401) { out(); throw new Error('Session expired. Please sign in again.'); }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Server request failed');
+    return data;
+  } catch(e) {
+    console.error('API Error:', path, e);
+    throw e;
+  }
+}
+
+async function loadData() {
+  if (!U) return;
+  try {
+    const [p, pl, tx, su, iv, py, us, ds] = await Promise.all([
+      req('/products').catch(() => []),
+      req('/plans').catch(() => []),
+      req('/taxes').catch(() => []),
+      req('/subscriptions').catch(() => []),
+      req('/invoices').catch(() => []),
+      req('/payments').catch(() => []),
+      U.role === 'CUSTOMER' ? req('/customers').catch(() => []) : req('/users').catch(() => []),
+      U.role !== 'CUSTOMER' ? req(`/dashboard?from=${F.f||''}&to=${F.t||''}`).catch(() => ({})) : Promise.resolve({})
+    ]);
+    S.prod = p;
+    S.plan = pl;
+    S.tax  = tx;
+    S.subs = su;
+    S.inv  = iv;
+    S.pay  = py;
+    S.users = us;
+    S.dash = ds;
+  } catch(e) {
+    toast(e.message);
+  }
+}
+
+const by=(a,id)=>S[a]?.find(x=>x.id==id)||{};
+const pill=(s)=>`<span class="p ${{PAID:'ok',Paid:'ok',ACTIVE:'ok',Active:'ok',OVERDUE:'er',Overdue:'er',CANCELLED:'er',Cancelled:'er',CLOSED:'er',Closed:'er',PAUSED:'wr',Paused:'wr',CONFIRMED:'',Confirmed:'',DRAFT:'wr',Draft:'wr',QUOTATION:'wr',Quotation:'wr'}[s]??''}">${s}</span>`;
+const can=r=>U?.role==r||(r=='STAFF'&&U?.role=='ADMIN');
+const NAV={ADMIN:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans'],['tax','Taxes'],['users','Users']],STAFF:[['dash','Dashboard'],['subs','Subscriptions'],['inv','Invoices'],['pay','Payments'],['prod','Products'],['plan','Plans']],CUSTOMER:[['home','My account']]};
+
 function go(p){page=p;Q='';PG=0;rr()}
-function tbl(rows,cols,fn,search=true){const q=Q.toLowerCase(),r=q?rows.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):rows,n=Math.ceil(r.length/12)||1;PG=Math.min(PG,n-1);
- return(search?`<input class=sr placeholder="Search…" value="${esc(Q)}" oninput="Q=this.value;PG=0;rr(1)">`:'')+`<div class=tw><table><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${r.slice(PG*12,PG*12+12).map(x=>`<tr>${fn(x).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')||`<tr><td colspan=${cols.length}>Nothing here yet.</td></tr>`}</table><div class=pg>${r.length} rows · page ${PG+1}/${n}<button class="btn sm" onclick="PG=Math.max(0,PG-1);rr()">Prev</button><button class="btn sm" onclick="PG=Math.min(${n-1},PG+1);rr()">Next</button></div></div>`}
-const del=(a,id)=>`<button class="btn sm dn" onclick="if(confirm('Delete?')){S.${a}=S.${a}.filter(x=>x.id!='${id}');save();rr()}">Delete</button>`;
+
+function tbl(rows,cols,fn,search=true){
+  const q=Q.toLowerCase(),r=q?rows.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):rows,n=Math.ceil(r.length/12)||1;PG=Math.min(PG,n-1);
+  return(search?`<input class=sr placeholder="Search…" value="${esc(Q)}" oninput="Q=this.value;PG=0;rr(1)">`:'')+`<div class=tw><table><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${r.slice(PG*12,PG*12+12).map(x=>`<tr>${fn(x).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')||`<tr><td colspan=${cols.length}>Nothing here yet.</td></tr>`}</table><div class=pg>${r.length} rows · page ${PG+1}/${n}<button class="btn sm" onclick="PG=Math.max(0,PG-1);rr()">Prev</button><button class="btn sm" onclick="PG=Math.min(${n-1},PG+1);rr()">Next</button></div></div>`;
+}
+
 const head=(t,b='')=>`<div class=hd><h2>${t}</h2><div>${b}</div></div>`;
-function subAct(s){const p=by('plan',s.plan),i=ST.indexOf(s.status),b=[];
- if(s.status=='Paused')b.push(['Resume','Active']);else if(i>=0&&i<3)b.push(['→ '+ST[i+1],ST[i+1]]);else if(s.status=='Active'){if(p.close)b.push(['Close','Closed']);if(p.pause)b.push(['Pause','Paused'])}
- const r=(s.status=='Active'||s.status=='Closed')&&p.renew?`<button class="btn sm" onclick="sa('${s.id}','Renew')">Renew</button>`:'';
- return b.map(x=>`<button class="btn sm" onclick="sa('${s.id}','${x[1]}')">${x[0]}</button>`).join('')+r}
-function sa(id,st){const s=by('subs',id);if(st=='Renew'){s.exp=addP(s.exp,'yearly');s.status='Active'}else{s.status=st;if(st=='Active'&&!s.next)s.next=s.start}save();rr()}
-function invAct(i){const a=[];if(i.status=='Draft')a.push(['Confirm','conf']);if(i.status=='Draft'||i.status=='Confirmed')a.push(['Cancel','canc']);if(i.status!='Cancelled')a.push(['Send','send']);if(i.status=='Confirmed'||i.status=='Draft')a.push(['Record payment','pay']);return a.map(x=>`<button class="btn sm" onclick="ia('${i.id}','${x[1]}')">${x[0]}</button>`).join('')+`<button class="btn sm" onclick="view('${i.id}')">View / Print</button>`}
-function ia(id,a){const i=by('inv',id);if(a=='conf')i.status='Confirmed';if(a=='canc')i.status='Cancelled';if(a=='send'){i.sent=true;toast('Invoice '+i.no+' sent to '+by('users',i.cust).email)}if(a=='pay')return payForm(i);save();rr()}
-function payForm(i){modal('Record payment · '+i.no,[{k:'m',l:'Method',t:'select',o:['Card','UPI','Bank transfer','Cash','Cheque'].map(x=>[x,x])},{k:'a',l:'Amount (due '+fm(bal(i))+')',t:'number',v:bal(i).toFixed(2)},{k:'d',l:'Date',t:'date',v:td()},{k:'n',l:'Note'}],v=>{if(!(v.a>0)||v.a>bal(i)+.005)return err('Enter an amount up to '+fm(bal(i)));S.pay.push({id:uid(),inv:i.id,m:v.m,amt:v.a,date:v.d,note:v.n});if(i.status=='Draft')i.status='Confirmed';if(bal(i)<.01)i.status='Paid';toast('Payment recorded')})}
-function payPick(){const o=S.inv.filter(i=>(i.status=='Confirmed'||i.status=='Draft')&&bal(i)>0);if(!o.length){toast('No unpaid invoices yet. Run billing on the Invoices page first.');return}modal('Choose invoice',[{k:'i',l:'Invoice',t:'select',o:o.map(i=>[i.id,`${i.no} · ${by('users',i.cust).name} · ${fm(bal(i))} (${i.status})`])}],v=>{setTimeout(()=>payForm(by('inv',v.i)),0)},'Next')}
-function view(id){const i=by('inv',id),c=by('users',i.cust);$('#md').innerHTML=`<div class="mb inv" style="max-width:640px"><h3>Invoice ${i.no}</h3><p>${esc(c.name)} · ${esc(c.email)}<br>Date ${i.date} · Due ${i.due} · ${pill(od(i)?'Overdue':i.status)}</p><div class=tw><table style="min-width:0"><tr><th>Item<th>Qty<th>Price<th>Tax<th>Amount</tr>${i.lines.map(l=>`<tr><td>${esc(l.n)}<td>${l.q}<td>${fm(l.p)}<td>${l.r}%<td>${fm(l.q*l.p)}</tr>`).join('')}</table></div><p style="text-align:right">Subtotal ${fm(i.subtotal)}<br>${i.disc?`Discount (${esc(i.dn)}) −${fm(i.disc)}<br>`:''}Tax ${fm(i.tax)}<br><b style="font-size:18px">Total ${fm(i.total)}</b><br>Balance ${fm(bal(i))}</p><div class=row><button class=btn onclick=cm()>Close</button><button class="btn pr" onclick=print()>Print</button></div></div>`;$('#md').className='md on'}
+
+function subAct(s){
+  const p=s.plan||{}, b=[];
+  if(s.status=='PAUSED'||s.status=='Paused') b.push(['Resume','RESUME']);
+  else if(s.status=='DRAFT'||s.status=='Draft') b.push(['Confirm','CONFIRM']);
+  else if(s.status=='CONFIRMED'||s.status=='Confirmed') b.push(['Activate','ACTIVATE']);
+  else if(s.status=='ACTIVE'||s.status=='Active'){
+    if(p.canClose!==false) b.push(['Close','CLOSE']);
+    if(p.canPause!==false) b.push(['Pause','PAUSE']);
+  }
+  const r=(s.status=='ACTIVE'||s.status=='Active'||s.status=='CLOSED'||s.status=='Closed') && p.canRenew!==false ? `<button class="btn sm" onclick="doSubAct(${s.id},'RENEW')">Renew</button>` : '';
+  return b.map(x=>`<button class="btn sm" onclick="doSubAct(${s.id},'${x[1]}')">${x[0]}</button>`).join('')+r;
+}
+
+async function doSubAct(id, act){
+  try {
+    await req(`/subscriptions/${id}/action`, { method: 'PUT', body: JSON.stringify({ action: act }) });
+    toast('Subscription updated');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function invAct(i){
+  const a=[];
+  if(i.status=='DRAFT'||i.status=='Draft') a.push(['Confirm','CONFIRMED']);
+  if(i.status=='DRAFT'||i.status=='Draft'||i.status=='CONFIRMED'||i.status=='Confirmed') a.push(['Cancel','CANCELLED']);
+  if(i.status!='CANCELLED'&&i.status!='Cancelled') a.push(['Send','send']);
+  if(i.status=='CONFIRMED'||i.status=='Confirmed'||i.status=='DRAFT'||i.status=='Draft') a.push(['Record payment','pay']);
+  return a.map(x=>`<button class="btn sm" onclick="doInvAct(${i.id},'${x[1]}')">${x[0]}</button>`).join('')+`<button class="btn sm" onclick="viewInv(${i.id})">View / Print</button>`;
+}
+
+async function doInvAct(id, a){
+  const i=S.inv.find(x=>x.id==id);
+  if(a=='send'){ toast(`Invoice ${i.invoiceNo} sent to ${i.customerEmail||'customer'}`); return; }
+  if(a=='pay'){ payForm(i); return; }
+  try {
+    await req(`/invoices/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: a }) });
+    toast(`Invoice status updated to ${a}`);
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function payForm(i){
+  modal(`Record payment · ${i.invoiceNo}`, [
+    {k:'method', l:'Method', t:'select', o:['UPI','Card','Cash','Bank Transfer','Cheque'].map(x=>[x,x])},
+    {k:'amount', l:`Amount (due ${fm(i.balance)})`, t:'number', v:i.balance},
+    {k:'paymentDate', l:'Date', t:'date', v:td()},
+    {k:'note', l:'Note'}
+  ], async (v)=>{
+    if(!(v.amount>0) || v.amount > i.balance + 0.01) { toast('Enter an amount up to ' + fm(i.balance)); return false; }
+    try {
+      await req('/payments', {
+        method: 'POST',
+        body: JSON.stringify({
+          invoiceId: i.id,
+          amount: v.amount,
+          method: v.method.toUpperCase().replace(' ','_'),
+          paymentDate: v.paymentDate,
+          note: v.note
+        })
+      });
+      toast('Payment recorded successfully');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+function payPick(){
+  const unpaid = S.inv.filter(i=> (i.status=='CONFIRMED'||i.status=='Confirmed'||i.status=='DRAFT'||i.status=='Draft') && i.balance > 0);
+  if(!unpaid.length){ toast('No unpaid invoices. Run billing first.'); return; }
+  modal('Choose invoice', [
+    {k:'id', l:'Invoice', t:'select', o: unpaid.map(i=>[i.id, `${i.invoiceNo} · ${i.customerName} · ${fm(i.balance)} (${i.status})`])}
+  ], (v)=>{
+    const inv = S.inv.find(x=>x.id==v.id);
+    if(inv) setTimeout(()=>payForm(inv), 50);
+  }, 'Next');
+}
+
+function viewInv(id){
+  const i = S.inv.find(x=>x.id==id);
+  if(!i) return;
+  const isOverdue = (i.status=='CONFIRMED'||i.status=='Confirmed') && i.dueDate < td();
+  $('#md').innerHTML=`<div class="mb inv" style="max-width:640px">
+    <h3>Invoice ${esc(i.invoiceNo)}</h3>
+    <p>${esc(i.customerName)} · ${esc(i.customerEmail)}<br>Date ${i.invoiceDate} · Due ${i.dueDate} · ${pill(isOverdue?'Overdue':i.status)}</p>
+    <div class=tw><table style="min-width:0"><tr><th>Item<th>Qty<th>Price<th>Tax<th>Amount</tr>
+    ${(i.lines||[]).map(l=>`<tr><td>${esc(l.description)}<td>${l.quantity}<td>${fm(l.unitPrice)}<td>${l.taxRate}%<td>${fm(l.lineTotal)}</tr>`).join('')}
+    </table></div>
+    <p style="text-align:right">Subtotal ${fm(i.subtotal)}<br>Tax ${fm(i.taxAmount)}<br><b style="font-size:18px">Total ${fm(i.total)}</b><br>Paid ${fm(i.paidAmount)}<br>Balance ${fm(i.balance)}</p>
+    <div class=row><button class=btn onclick=cm()>Close</button><button class="btn pr" onclick=window.print()>Print</button></div>
+  </div>`;
+  $('#md').className='md on';
+}
+
 const P={
-dash(){const t=td(),f=F.f||'0000',to=F.t||'9999',act=S.subs.filter(s=>s.status=='Active'),pays=S.pay.filter(p=>p.date>=f&&p.date<=to),open=S.inv.filter(i=>i.status=='Confirmed'),ov=open.filter(od);
- const mrr=act.reduce((a,s)=>a+sub$(s)*({daily:30,weekly:4.33,monthly:1,yearly:1/12}[by('plan',s.plan).per]||1),0),mo=[];for(let k=5;k>=0;k--){const d=new Date();d.setMonth(d.getMonth()-k);mo.push(d.toISOString().slice(0,7))}
- const v=mo.map(m=>S.pay.filter(p=>p.date.startsWith(m)).reduce((a,p)=>a+p.amt,0)),mx=Math.max(...v,1);
- return head('Dashboard')+`<div class=fl><label>From<input type=date value="${F.f||''}" onchange="F.f=this.value;rr()"></label><label>To<input type=date value="${F.t||''}" onchange="F.t=this.value;rr()"></label></div><div class=kp><div class=k><small>Active subscriptions</small><b>${act.length}</b></div><div class=k><small>Monthly recurring revenue</small><b>${fm(mrr)}</b></div><div class="k g"><small>Revenue collected</small><b>${fm(pays.reduce((a,p)=>a+p.amt,0))}</b></div><div class=k><small>Still owed</small><b>${fm(open.reduce((a,i)=>a+bal(i),0))}</b></div><div class="k w"><small>Overdue invoices</small><b>${ov.length}</b></div></div>
- <div class=cd><h3>Collected, last 6 months</h3><div class=bars>${v.map((x,i)=>`<div><i style="height:${x/mx*100}px"></i>${mo[i].slice(5)}<br>${fm(x)}</div>`).join('')}</div></div><h3 style="margin-bottom:8px">Overdue — chase these first</h3>`+tbl(ov.sort((a,b)=>a.due>b.due?1:-1),['Invoice','Customer','Due','Days late','Balance',''],i=>[i.no,esc(by('users',i.cust).name),i.due,Math.round((new Date(t)-new Date(i.due))/864e5),fm(bal(i)),`<button class="btn sm" onclick="ia('${i.id}','pay')">Record payment</button>`],false)},
-subs(){return head('Subscriptions',`<button class="btn pr" onclick="newSub()">New subscription</button>`)+tbl(S.subs,['Number','Customer','Plan','Start','Expiry','Next bill','Total / period','Status',''],s=>[s.no,esc(by('users',s.cust).name),esc(by('plan',s.plan).name),s.start,s.exp,s.status=='Active'?s.next:'—',fm(sub$(s)),pill(s.status)+(s.qv?` <small>valid to ${s.qv}</small>`:''),subAct(s)])},
-inv(){return head('Invoices',`<button class="btn pr" onclick="const n=bill();toast(n?n+' invoice(s) created':'Nothing due — no duplicates created');rr()">Run billing</button>`)+tbl([...S.inv].reverse(),['Invoice','Customer','Date','Due','Total','Balance','Status',''],i=>[i.no,esc(by('users',i.cust).name),i.date,i.due,fm(i.total),fm(bal(i)),pill(od(i)?'Overdue':i.status)+(i.sent?' ✉':''),invAct(i)])},
-pay(){return head('Payments',`<button class="btn pr" onclick="payPick()">Record payment</button>`)+tbl([...S.pay].reverse(),['Date','Invoice','Customer','Method','Amount','Note'],p=>{const i=by('inv',p.inv);return[p.date,i.no,esc(by('users',i.cust).name),p.m,fm(p.amt),esc(p.note)]})},
-prod(){const a=U.role=='admin';return head('Products',a?`<button class="btn pr" onclick="newProd()">Add product</button>`:'')+tbl(S.prod,['Name','Type','Sales','Cost','Tax','Variants',''],p=>[esc(p.name),p.type,fm(p.sale),fm(p.cost),by('tax',p.tid).n||'—',p.vars.map(v=>esc(v.n)+' +'+v.x).join(', ')||'—',a?del('prod',p.id):''])},
-plan(){const a=U.role=='admin';return head('Plans',a?`<button class="btn pr" onclick="newPlan()">Add plan</button>`:'')+tbl(S.plan,['Name','Price','Billing','Min qty','Available','Rules',''],p=>[esc(p.name),fm(p.price),p.per,p.minQty,p.from+' → '+p.to,[p.auto&&'auto-close',p.close&&'early close',p.pause&&'pause',p.renew&&'renew'].filter(Boolean).join(', ')||'none',a?del('plan',p.id):''])},
-tpl(){return head('Quotation templates',`<button class="btn pr" onclick="newTpl()">New template</button>`)+tbl(S.tpl,['Name','Plan','Item','Qty','Valid (days)',''],t=>[esc(t.n),esc(by('plan',t.plan).name),esc(line(t.combo,1).n),t.qty,t.days,del('tpl',t.id)])},
-disc(){return head('Discount rules',`<button class="btn pr" onclick="newDisc()">Add discount</button>`)+tbl(S.disc,['Name','Value','Applies to','Min amount / qty','Valid','Used',''],d=>[esc(d.n),d.type=='pct'?d.val+'%':fm(d.val),d.tg[0]=='P'?esc(by('prod',d.tg.slice(1)).name):d.tg[0]=='S'?esc(by('subs',d.tg.slice(1)).no):'All subscriptions',d.minAmt+' / '+d.minQty,d.from+' → '+d.to,d.used+'/'+d.limit,del('disc',d.id)])},
-tax(){return head('Taxes',`<button class="btn pr" onclick="modal('Add tax',[{k:'n',l:'Name'},{k:'r',l:'Rate %',t:'number'}],v=>{if(!v.n)return err('Name required');S.tax.push({id:uid(),n:v.n,rate:v.r})})">Add tax</button>`)+tbl(S.tax,['Name','Rate',''],t=>[esc(t.n),t.rate+'%',del('tax',t.id)])},
-users(){return head('Users',`<button class="btn pr" onclick="modal('Add staff member',[{k:'n',l:'Name'},{k:'e',l:'Email'},{k:'p',l:'Temporary password',t:'password'}],v=>{v.e=v.e.trim().toLowerCase();if(!v.n||!/^\S+@\S+\.\S+$/.test(v.e))return err('Name and valid email required');if(S.users.some(u=>u.email==v.e))return err('Email already in use');if(!pwOk(v.p))return err('Password: 9+ chars, upper, lower, special');hs(v.p).then(h=>{S.users.push({id:uid(),name:v.n,email:v.e,role:'staff',pw:h});save();rr()})})">Add staff</button>`)+tbl(S.users,['Name','Email','Role',''],u=>[esc(u.name),esc(u.email),pill(u.role),u.id==U.id?'':del('users',u.id)])},
-home(){const ss=S.subs.filter(s=>s.cust==U.id),ii=S.inv.filter(i=>i.cust==U.id&&i.status!='Draft'&&i.status!='Cancelled');return head('Hello, '+esc(U.name))+`<div class=kp><div class=k><small>Active subscriptions</small><b>${ss.filter(s=>s.status=='Active').length}</b></div><div class="k w"><small>Outstanding</small><b>${fm(ii.reduce((a,i)=>a+bal(i),0))}</b></div></div><h3 style="margin-bottom:8px">My subscriptions</h3>`+tbl(ss.filter(s=>s.status!='Draft'),['Number','Plan','Expiry','Next bill','Status',''],s=>[s.no,esc(by('plan',s.plan).name),s.exp,s.status=='Active'?s.next:'—',pill(s.status),(s.status=='Active'||s.status=='Paused')?subAct({...s,status:s.status}).replace(/→ \w+/,'')+'':''],false)+`<h3 style="margin:18px 0 8px">My invoices</h3>`+tbl(ii,['Invoice','Due','Total','Balance','Status',''],i=>[i.no,i.due,fm(i.total),fm(bal(i)),pill(od(i)?'Overdue':i.status),`<button class="btn sm" onclick="view('${i.id}')">View / Print</button>`+(i.status=='Confirmed'?`<button class="btn sm pr" onclick="payOnline('${i.id}')">Pay now</button>`:'')],false)}};
-function payOnline(id){const i=by('inv',id);S.pay.push({id:uid(),inv:i.id,m:'Card',amt:bal(i),date:td(),note:'Paid via customer portal'});i.status='Paid';save();toast('Payment received. Thank you!');rr()}
-function newProd(){modal('Add product',[{k:'name',l:'Name'},{k:'type',l:'Type',t:'select',o:['Software','Add-on','Service','Variant product'].map(x=>[x,x])},{k:'sale',l:'Sales price',t:'number'},{k:'cost',l:'Cost price',t:'number'},{k:'tid',l:'Tax',t:'select',o:S.tax.map(t=>[t.id,t.n])},{k:'vr',l:'Variants (Odoo=560, Zoho=300)'},{k:'notes',l:'Notes'}],v=>{if(!v.name||v.sale<=0)return err('Name and sales price required');const vars=v.vr.split(',').map(x=>x.split('=')).filter(x=>x[0].trim()).map(x=>({n:'Brand: '+x[0].trim(),x:+x[1]||0}));S.prod.push({id:uid(),name:v.name,type:v.type,sale:v.sale,cost:v.cost,notes:v.notes,tid:v.tid,vars})})}
-function newPlan(){modal('Add plan',[{k:'name',l:'Name'},{k:'price',l:'Recurring price',t:'number'},{k:'per',l:'Billing period',t:'select',o:['daily','weekly','monthly','yearly'].map(x=>[x,x])},{k:'minQty',l:'Minimum quantity',t:'number',v:1},{k:'from',l:'Available from',t:'date',v:td()},{k:'to',l:'Available until',t:'date',v:addD(td(),365)},{k:'auto',l:'Close automatically at end',t:'check'},{k:'close',l:'Can be closed early',t:'check'},{k:'pause',l:'Can be paused',t:'check'},{k:'renew',l:'Can be renewed',t:'check',v:1}],v=>{if(!v.name||v.to<v.from)return err('Name and a valid date range required');S.plan.push({id:uid(),...v,minQty:v.minQty||1})})}
-function newDisc(){modal('Add discount',[{k:'n',l:'Name'},{k:'type',l:'Type',t:'select',o:[['pct','Percentage'],['fix','Fixed amount']]},{k:'val',l:'Value',t:'number'},{k:'minAmt',l:'Minimum purchase',t:'number'},{k:'minQty',l:'Minimum quantity',t:'number'},{k:'from',l:'Starts',t:'date',v:td()},{k:'to',l:'Ends',t:'date',v:addD(td(),90)},{k:'limit',l:'Max uses',t:'number',v:100},{k:'tg',l:'Applies to',t:'select',o:[['','All subscriptions'],...S.prod.map(p=>['P'+p.id,'Product: '+p.name]),...S.subs.map(s=>['S'+s.id,'Subscription: '+s.no])]}],v=>{if(!v.n||v.val<=0||v.to<v.from)return err('Name, value and valid dates required');S.disc.push({id:uid(),...v,used:0})})}
-function newTpl(){modal('New quotation template',[{k:'n',l:'Name'},{k:'plan',l:'Plan',t:'select',o:S.plan.map(p=>[p.id,p.name])},{k:'combo',l:'Product line',t:'select',o:combos()},{k:'qty',l:'Quantity',t:'number',v:1},{k:'days',l:'Valid for (days)',t:'number',v:15}],v=>{if(!v.n)return err('Name required');S.tpl.push({id:uid(),...v})})}
-function newSub(){const cs=S.users.filter(u=>u.role=='customer');modal('New subscription',[{k:'cust',l:'Customer',t:'select',o:cs.map(u=>[u.id,u.name])},{k:'tpl',l:'Start from template',t:'select',o:[['','— none —'],...S.tpl.map(t=>[t.id,t.n])]},{k:'plan',l:'Plan (ignored if template)',t:'select',o:S.plan.map(p=>[p.id,p.name])},{k:'combo',l:'Product (ignored if template)',t:'select',o:combos()},{k:'qty',l:'Quantity',t:'number',v:1},{k:'start',l:'Start date',t:'date',v:td()},{k:'exp',l:'Expiry date',t:'date',v:addD(td(),365)},{k:'terms',l:'Payment terms',t:'select',o:[[0,'Immediate'],[15,'15 days'],[30,'30 days'],[45,'45 days']],v:15}],v=>{const t=by('tpl',v.tpl),pid=t.plan||v.plan,pl=by('plan',pid),q=t.qty||v.qty,c=t.combo||v.combo;if(q<pl.minQty)return err('Plan needs at least '+pl.minQty+' units');if(v.exp<=v.start)return err('Expiry must be after start');const l=[line(c,q)];if(pl.price)l.unshift({pid:null,n:'Plan fee – '+pl.name,q:1,p:pl.price,tid:S.tax[0]?.id});S.subs.push({id:uid(),no:'SUB-'+String(S.sseq++).padStart(4,'0'),cust:v.cust,plan:pid,start:v.start,exp:v.exp,terms:+v.terms,lines:l,status:t.id?'Quotation':'Draft',next:v.start,qv:t.id?addD(td(),t.days):null});toast('Subscription created')})}
-function authH(){const up=tab=='up';return`<div class="au${AP?' st':''}"><div class=hero><i class="blob b1"></i><i class="blob b2"></i><div class="lg a" onclick=goL() style="font-size:22px;margin-bottom:34px;cursor:pointer" title="Back to home">◐ Brightloop</div><h1><span class=a style="--d:.1s">Recurring revenue,</span><br><span class=a style="--d:.26s">on autopilot.</span></h1><p class=a style="--d:.4s">Plans, subscriptions, invoices and payments in one place. No spreadsheets, no missed renewals.</p><div class=a style="--d:.55s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹6,490'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created for you</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div><div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>Discount rules</span><span>Overdue alerts</span><span>Customer portal</span><span>Revenue reports</span>'.repeat(4)}</div></div></div><div class=fm><button class="btn ic" title="Toggle dark mode" onclick=tgl() style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:5">${isDark()?'☀':'☾'}</button><div class=tabs><a class="${up?'':'on'}" onclick="tab='in';rr()">Sign in</a><a class="${up?'on':''}" onclick="tab='up';rr()">Create account</a></div>${up?'<label>Company or full name<input id=an></label>':''}<label>Email<input id=ae type=email></label><label>Password<input id=ap type=password onkeydown="event.key=='Enter'&&auth()"></label><div class=err id=ar></div><button class="btn pr" onclick="auth()">${up?'Create account':'Sign in'}</button>${up?'<div class=demo>9+ characters with an uppercase letter, a lowercase letter and a special character.</div>':`<p><a style="cursor:pointer;color:var(--ac)" onclick="forgot()">Forgot password?</a></p><div class=demo>Demo logins<br>admin@brightloop.io / Admin@1234<br>staff@brightloop.io / Staff@1234<br>cust@acme.com / Cust@12345</div>`}</div></div>`}
-async function auth(){const e=$('#ae').value.trim().toLowerCase(),p=$('#ap').value,R=m=>$('#ar').textContent=m;
- if(tab=='up'){const n=$('#an').value.trim();if(!n||!/^\S+@\S+\.\S+$/.test(e))return R('Enter your name and a valid email.');if(S.users.some(u=>u.email==e))return R('That email already has an account.');if(!pwOk(p))return R('Password needs 9+ characters, with uppercase, lowercase and a special character.');U={id:uid(),name:n,email:e,role:'customer',pw:await hs(p)};S.users.push(U)}
- else{const u=S.users.find(u=>u.email==e);if(!u||u.pw!=await hs(p))return R('Email or password is incorrect.');U=u}
- S.sess=U.id;save();page=NAV[U.role][0][0];rr()}
-function forgot(){modal('Reset password',[{k:'e',l:'Registered email'}],v=>{const u=S.users.find(u=>u.email==v.e.trim().toLowerCase());toast('If that email is registered, a reset link is on its way.');if(u)setTimeout(()=>modal('Reset link opened (demo)',[{k:'p',l:'New password',t:'password'}],x=>{if(!pwOk(x.p))return err('9+ chars with upper, lower and special');hs(x.p).then(h=>{u.pw=h;save();toast('Password updated. Sign in.')})}),700)},'Send reset link')}
-function out(){U=null;S.sess=null;save();tab='in';AP=false;L=true;scrollTo(0,0);rr()}
+  dash(){
+    const d = S.dash || {};
+    const actCount = d.activeSubscriptions ?? S.subs.filter(s=>s.status=='ACTIVE'||s.status=='Active').length;
+    const mrr = d.monthlyRecurringRevenue ?? 0;
+    const rev = d.revenueCollected ?? 0;
+    const owed = d.outstandingAmount ?? 0;
+    const overdueCount = d.overdueInvoiceCount ?? 0;
+    const ov = S.inv.filter(i=>(i.status=='CONFIRMED'||i.status=='Confirmed') && i.dueDate < td());
+
+    const mo=[]; for(let k=5;k>=0;k--){const dt=new Date();dt.setMonth(dt.getMonth()-k);mo.push(dt.toISOString().slice(0,7))}
+    const v=mo.map(m=>S.pay.filter(p=>p.paymentDate?.startsWith(m)).reduce((a,p)=>a+(+p.amount||0),0)),mx=Math.max(...v,1);
+
+    return head('Dashboard')+`<div class=fl><label>From<input type=date value="${F.f||''}" onchange="F.f=this.value;loadData().then(rr)"></label><label>To<input type=date value="${F.t||''}" onchange="F.t=this.value;loadData().then(rr)"></label></div>
+    <div class=kp>
+      <div class=k><small>Active subscriptions</small><b>${actCount}</b></div>
+      <div class=k><small>Monthly recurring revenue</small><b>${fm(mrr)}</b></div>
+      <div class="k g"><small>Revenue collected</small><b>${fm(rev)}</b></div>
+      <div class=k><small>Still owed</small><b>${fm(owed)}</b></div>
+      <div class="k w"><small>Overdue invoices</small><b>${overdueCount}</b></div>
+    </div>
+    <div class=cd><h3>Collected, last 6 months</h3><div class=bars>${v.map((x,i)=>`<div><i style="height:${x/mx*100}px"></i>${mo[i].slice(5)}<br>${fm(x)}</div>`).join('')}</div></div>
+    <h3 style="margin-bottom:8px">Overdue — chase these first</h3>`+
+    tbl(ov,['Invoice','Customer','Due','Balance',''],i=>[i.invoiceNo,esc(i.customerName),i.dueDate,fm(i.balance),`<button class="btn sm" onclick="doInvAct(${i.id},'pay')">Record payment</button>`],false);
+  },
+
+  subs(){
+    return head('Subscriptions', `<button class="btn pr" onclick="newSubModal()">New subscription</button>`)+
+    tbl(S.subs, ['Number','Customer','Plan','Start','Expiry','Next bill','Status','Actions'], s=>[
+      esc(s.subscriptionNo),
+      esc(s.customer?.name||'—'),
+      esc(s.plan?.name||'—'),
+      s.startDate,
+      s.expiryDate,
+      (s.status=='ACTIVE'||s.status=='Active')?s.nextBillDate:'—',
+      pill(s.status),
+      subAct(s)
+    ]);
+  },
+
+  inv(){
+    return head('Invoices', `<button class="btn pr" onclick="runBillingAction()">Run billing</button>`)+
+    tbl([...S.inv].reverse(), ['Invoice','Customer','Date','Due','Total','Balance','Status','Actions'], i=>[
+      esc(i.invoiceNo),
+      esc(i.customerName),
+      i.invoiceDate,
+      i.dueDate,
+      fm(i.total),
+      fm(i.balance),
+      pill((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.dueDate<td()?'Overdue':i.status)+(i.sent?' ✉':''),
+      invAct(i)
+    ]);
+  },
+
+  pay(){
+    return head('Payments', `<button class="btn pr" onclick="payPick()">Record payment</button>`)+
+    tbl([...S.pay].reverse(), ['Date','Invoice','Customer','Method','Amount','Note'], p=>[
+      p.paymentDate,
+      esc(p.invoiceNo||'—'),
+      esc(p.customerName||'—'),
+      p.method,
+      fm(p.amount),
+      esc(p.note)
+    ]);
+  },
+
+  prod(){
+    const a = U.role==='ADMIN';
+    return head('Products', a?`<button class="btn pr" onclick="newProdModal()">Add product</button>`:'')+
+    tbl(S.prod, ['Name','Type','Sales','Cost','Tax','Variants',''], p=>[
+      esc(p.name),
+      esc(p.type),
+      fm(p.salePrice),
+      fm(p.costPrice),
+      esc(p.tax?.name||'—'),
+      (p.variants||[]).map(v=>esc(v.name)+' +'+v.priceAddon).join(', ')||'—',
+      a?`<button class="btn sm dn" onclick="deleteProd(${p.id})">Delete</button>`:''
+    ]);
+  },
+
+  plan(){
+    const a = U.role==='ADMIN';
+    return head('Plans', a?`<button class="btn pr" onclick="newPlanModal()">Add plan</button>`:'')+
+    tbl(S.plan, ['Name','Price','Billing','Min qty','Available','Rules',''], p=>[
+      esc(p.name),
+      fm(p.price),
+      esc(p.billingPeriod),
+      p.minQty,
+      p.availableFrom+' → '+p.availableTo,
+      [p.canAutoClose&&'auto-close',p.canClose&&'early close',p.canPause&&'pause',p.canRenew&&'renew'].filter(Boolean).join(', ')||'none',
+      a?`<button class="btn sm dn" onclick="deletePlan(${p.id})">Delete</button>`:''
+    ]);
+  },
+
+  tax(){
+    return head('Taxes', `<button class="btn pr" onclick="newTaxModal()">Add tax</button>`)+
+    tbl(S.tax, ['Name','Rate',''], t=>[
+      esc(t.name),
+      t.rate+'%',
+      `<button class="btn sm dn" onclick="deleteTax(${t.id})">Delete</button>`
+    ]);
+  },
+
+  users(){
+    return head('Users', `<button class="btn pr" onclick="newUserModal()">Add staff member</button>`)+
+    tbl(S.users, ['Name','Email','Role',''], u=>[
+      esc(u.name),
+      esc(u.email),
+      pill(u.role),
+      u.id==U.id?'':`<button class="btn sm dn" onclick="deleteUser(${u.id})">Delete</button>`
+    ]);
+  },
+
+  home(){
+    const ss = S.subs.filter(s=>s.customer?.id==U.id || s.customer==U.id);
+    const ii = S.inv.filter(i=>i.customerId==U.id && i.status!='DRAFT' && i.status!='Draft' && i.status!='CANCELLED' && i.status!='Cancelled');
+    const owed = ii.reduce((a,x)=>a+(+x.balance||0),0);
+    return head('Hello, '+esc(U.name))+`
+    <div class=kp>
+      <div class=k><small>Active subscriptions</small><b>${ss.filter(s=>s.status=='ACTIVE'||s.status=='Active').length}</b></div>
+      <div class="k w"><small>Outstanding</small><b>${fm(owed)}</b></div>
+    </div>
+    <h3 style="margin-bottom:8px">My subscriptions</h3>`+
+    tbl(ss, ['Number','Plan','Expiry','Next bill','Status','Actions'], s=>[
+      esc(s.subscriptionNo),
+      esc(s.plan?.name||'—'),
+      s.expiryDate,
+      (s.status=='ACTIVE'||s.status=='Active')?s.nextBillDate:'—',
+      pill(s.status),
+      (s.status=='ACTIVE'||s.status=='Active'||s.status=='PAUSED'||s.status=='Paused')?subAct(s):''
+    ], false)+
+    `<h3 style="margin:18px 0 8px">My invoices</h3>`+
+    tbl(ii, ['Invoice','Due','Total','Balance','Status','Actions'], i=>[
+      esc(i.invoiceNo),
+      i.dueDate,
+      fm(i.total),
+      fm(i.balance),
+      pill((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.dueDate<td()?'Overdue':i.status),
+      `<button class="btn sm" onclick="viewInv(${i.id})">View / Print</button>`+
+      ((i.status=='CONFIRMED'||i.status=='Confirmed')&&i.balance>0 ? `<button class="btn sm pr" onclick="customerPayOnline(${i.id})">Pay now</button>` : '')
+    ], false);
+  }
+};
+
+async function customerPayOnline(id){
+  const i = S.inv.find(x=>x.id==id);
+  if(!i) return;
+  try {
+    await req('/payments', {
+      method: 'POST',
+      body: JSON.stringify({
+        invoiceId: i.id,
+        amount: i.balance,
+        method: 'CARD',
+        paymentDate: td(),
+        note: 'Paid via customer portal'
+      })
+    });
+    toast('Payment received. Thank you!');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+async function runBillingAction(){
+  try {
+    const res = await req('/invoices/billing/run', { method: 'POST' });
+    toast(res.invoicesCreated ? `${res.invoicesCreated} invoice(s) generated!` : 'Nothing due — no duplicates created.');
+    await loadData();
+    rr();
+  } catch(e) { toast(e.message); }
+}
+
+function newProdModal(){
+  modal('Add product', [
+    {k:'name', l:'Name'},
+    {k:'type', l:'Type', t:'select', o:['Software','Add-on','Service'].map(x=>[x,x])},
+    {k:'salePrice', l:'Sales price', t:'number'},
+    {k:'costPrice', l:'Cost price', t:'number', v:0},
+    {k:'taxId', l:'Tax', t:'select', o: S.tax.map(t=>[t.id, t.name])},
+    {k:'vr', l:'Variants (e.g. Odoo=560, Zoho=300)'},
+    {k:'notes', l:'Notes'}
+  ], async (v)=>{
+    if(!v.name || v.salePrice <= 0) { toast('Name and valid sale price required'); return false; }
+    const variants = (v.vr||'').split(',').map(x=>x.split('=')).filter(x=>x[0].trim()).map(x=>({name:'Brand: '+x[0].trim(), priceAddon:+x[1]||0}));
+    try {
+      await req('/products', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: v.name,
+          type: v.type,
+          salePrice: v.salePrice,
+          costPrice: v.costPrice,
+          taxId: v.taxId ? +v.taxId : null,
+          notes: v.notes,
+          variants
+        })
+      });
+      toast('Product created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteProd(id){
+  if(!confirm('Delete this product?')) return;
+  try { await req(`/products/${id}`, { method: 'DELETE' }); toast('Product deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newPlanModal(){
+  modal('Add plan', [
+    {k:'name', l:'Name'},
+    {k:'price', l:'Recurring price', t:'number'},
+    {k:'billingPeriod', l:'Billing period', t:'select', o:[['MONTHLY','Monthly'],['YEARLY','Yearly'],['WEEKLY','Weekly'],['DAILY','Daily']]},
+    {k:'minQty', l:'Minimum quantity', t:'number', v:1},
+    {k:'availableFrom', l:'Available from', t:'date', v:td()},
+    {k:'availableTo', l:'Available until', t:'date', v:new Date(Date.now()+365*864e5).toISOString().slice(0,10)},
+    {k:'canAutoClose', l:'Close automatically at end', t:'check'},
+    {k:'canClose', l:'Can be closed early', t:'check', v:1},
+    {k:'canPause', l:'Can be paused', t:'check', v:1},
+    {k:'canRenew', l:'Can be renewed', t:'check', v:1}
+  ], async (v)=>{
+    if(!v.name || v.availableTo < v.availableFrom) { toast('Valid name and dates required'); return false; }
+    try {
+      await req('/plans', { method: 'POST', body: JSON.stringify(v) });
+      toast('Plan created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deletePlan(id){
+  if(!confirm('Delete this plan?')) return;
+  try { await req(`/plans/${id}`, { method: 'DELETE' }); toast('Plan deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newTaxModal(){
+  modal('Add tax', [
+    {k:'name', l:'Name'},
+    {k:'rate', l:'Rate %', t:'number'}
+  ], async (v)=>{
+    if(!v.name) { toast('Name required'); return false; }
+    try {
+      await req('/taxes', { method: 'POST', body: JSON.stringify(v) });
+      toast('Tax created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteTax(id){
+  if(!confirm('Delete this tax?')) return;
+  try { await req(`/taxes/${id}`, { method: 'DELETE' }); toast('Tax deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newUserModal(){
+  modal('Add staff member', [
+    {k:'name', l:'Name'},
+    {k:'email', l:'Email'},
+    {k:'password', l:'Temporary password', t:'password'}
+  ], async (v)=>{
+    v.email = (v.email||'').trim().toLowerCase();
+    if(!v.name || !/^\S+@\S+\.\S+$/.test(v.email)) { toast('Valid name and email required'); return false; }
+    try {
+      await req('/users', { method: 'POST', body: JSON.stringify({ ...v, role: 'STAFF' }) });
+      toast('Staff member added');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+async function deleteUser(id){
+  if(!confirm('Delete user?')) return;
+  try { await req(`/users/${id}`, { method: 'DELETE' }); toast('User deleted'); await loadData(); rr(); }
+  catch(e) { toast(e.message); }
+}
+
+function newSubModal(){
+  const custs = S.users.filter(u=>u.role==='CUSTOMER');
+  if(!custs.length){ toast('No customers found. Add a customer first.'); return; }
+  const productOptions = S.prod.map(p=>[p.id, `${p.name} (₹${p.salePrice})`]);
+
+  modal('New subscription', [
+    {k:'customerId', l:'Customer', t:'select', o: custs.map(c=>[c.id, c.name])},
+    {k:'planId', l:'Plan', t:'select', o: S.plan.map(p=>[p.id, `${p.name} (₹${p.price} / ${p.billingPeriod})`])},
+    {k:'productId', l:'Primary product', t:'select', o: productOptions},
+    {k:'quantity', l:'Quantity', t:'number', v:1},
+    {k:'startDate', l:'Start date', t:'date', v:td()},
+    {k:'expiryDate', l:'Expiry date', t:'date', v:new Date(Date.now()+365*864e5).toISOString().slice(0,10)},
+    {k:'paymentTermsDays', l:'Payment terms', t:'select', o:[[0,'Immediate'],[15,'15 days'],[30,'30 days'],[45,'45 days']], v:15}
+  ], async (v)=>{
+    const plan = by('plan', v.planId);
+    const prod = by('prod', v.productId);
+    if(v.quantity < (plan.minQty||1)) { toast('Plan requires min quantity: ' + plan.minQty); return false; }
+    if(v.expiryDate <= v.startDate) { toast('Expiry date must be after start date'); return false; }
+
+    const lines = [];
+    if(plan.price > 0){
+      lines.push({
+        description: 'Plan fee – ' + plan.name,
+        quantity: 1,
+        unitPrice: plan.price,
+        taxRate: 18.00
+      });
+    }
+    if(prod.id){
+      lines.push({
+        productId: prod.id,
+        description: prod.name,
+        quantity: +v.quantity,
+        unitPrice: prod.salePrice,
+        taxRate: prod.tax?.rate || 18.00
+      });
+    }
+
+    try {
+      await req('/subscriptions', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: +v.customerId,
+          planId: +v.planId,
+          startDate: v.startDate,
+          expiryDate: v.expiryDate,
+          paymentTermsDays: +v.paymentTermsDays,
+          lines
+        })
+      });
+      toast('Subscription created');
+      await loadData();
+      rr();
+    } catch(e) { toast(e.message); return false; }
+  });
+}
+
+function modal(t,fs,cb,ok='Save'){
+  const m=$('#md');
+  m.innerHTML=`<div class=mb><h3>${t}</h3>${fs.map(f=>`<label>${f.l}${f.t=='select'?`<select id=f_${f.k}>${f.o.map(o=>`<option value="${esc(o[0])}" ${o[0]==f.v?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:f.t=='check'?`<input type=checkbox id=f_${f.k} ${f.v?'checked':''}>`:`<input id=f_${f.k} type=${f.t||'text'} value="${esc(f.v??'')}">`}</label>`).join('')}<div class=row><button class=btn onclick=cm()>Cancel</button><button class="btn pr" id=modal_ok_btn>${ok}</button></div></div>`;
+  m.className='md on';
+  $('#modal_ok_btn').onclick = async ()=>{
+    const v={};
+    fs.forEach(f=>{
+      const e=$('#f_'+f.k);
+      v[f.k]=f.t=='check'?e.checked:f.t=='number'?+e.value:e.value;
+    });
+    if(await cb(v)!==false){ cm(); }
+  };
+}
+
+const cm=()=>$('#md').className='md';
+
+function authH(){
+  const up=tab=='up';
+  return`<div class="au${AP?' st':''}"><div class=hero><i class="blob b1"></i><i class="blob b2"></i><div class="lg a" onclick=goL() style="font-size:22px;margin-bottom:34px;cursor:pointer" title="Back to home">◐ Brightloop</div><h1><span class=a style="--d:.1s">Recurring revenue,</span><br><span class=a style="--d:.26s">on autopilot.</span></h1><p class=a style="--d:.4s">Plans, subscriptions, invoices and payments in one place. No spreadsheets, no missed renewals.</p><div class=a style="--d:.55s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹6,490'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created for you</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div><div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>Discount rules</span><span>Overdue alerts</span><span>Customer portal</span><span>Revenue reports</span>'.repeat(4)}</div></div></div><div class=fm><button class="btn ic" title="Toggle dark mode" onclick=tgl() style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:5">${isDark()?'☀':'☾'}</button><div class=tabs><a class="${up?'':'on'}" onclick="tab='in';rr()">Sign in</a><a class="${up?'on':''}" onclick="tab='up';rr()">Create account</a></div>${up?'<label>Company or full name<input id=an></label>':''}<label>Email<input id=ae type=email></label><label>Password<input id=ap type=password onkeydown="event.key=='Enter'&&auth()"></label><div class=err id=ar></div><button class="btn pr" onclick="auth()">${up?'Create account':'Sign in'}</button>${up?'<div class=demo>Secure password with upper, lower and special characters.</div>':`<div class=demo style="margin-top:20px;line-height:1.7;background:var(--ac2);padding:10px 14px;border-radius:10px"><b>Quick Demo Logins:</b><br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('admin@brightloop.io','Admin@1234')">admin@brightloop.io</a> / Admin@1234 (Admin)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('staff@brightloop.io','Staff@1234')">staff@brightloop.io</a> / Staff@1234 (Staff)<br><a style="cursor:pointer;color:var(--ac)" onclick="fillLogin('cust@acme.com','Cust@12345')">cust@acme.com</a> / Cust@12345 (Customer)</div>`}</div></div>`;
+}
+
+function fillLogin(e, p){
+  $('#ae').value = e;
+  $('#ap').value = p;
+  auth();
+}
+
+async function auth(){
+  const e=$('#ae').value.trim().toLowerCase(), p=$('#ap').value, R=m=>$('#ar').textContent=m;
+  R('');
+  try {
+    if(tab=='up'){
+      const n=$('#an').value.trim();
+      if(!n||!/^\S+@\S+\.\S+$/.test(e)) return R('Enter your name and a valid email.');
+      const res = await req('/auth/register', { method: 'POST', body: JSON.stringify({ name: n, email: e, password: p, role: 'CUSTOMER' }) });
+      token = res.token;
+      U = { id: res.userId, name: res.name, email: res.email, role: res.role };
+    } else {
+      const res = await req('/auth/login', { method: 'POST', body: JSON.stringify({ email: e, password: p }) });
+      token = res.token;
+      U = { id: res.userId, name: res.name, email: res.email, role: res.role };
+    }
+    localStorage.setItem('bl_jwt', token);
+    localStorage.setItem('bl_u', JSON.stringify(U));
+    page = NAV[U.role][0][0];
+    await loadData();
+    rr();
+  } catch(err) {
+    R(err.message);
+  }
+}
+
+function out(){
+  U=null; token=null;
+  localStorage.removeItem('bl_jwt');
+  localStorage.removeItem('bl_u');
+  tab='in'; AP=false; L=true; scrollTo(0,0); rr();
+}
+
 const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t=='dark':matchMedia('(prefers-color-scheme:dark)').matches};
 function tgl(){const t=isDark()?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('bl_theme',t)}catch(e){}rr()}
-let AP=false,L=true;
-function goL(){L=true;AP=false;scrollTo(0,0);rr()}function goA(t){tab=t;L=false;AP=false;scrollTo(0,0);rr()}function goD(){L=false;scrollTo(0,0);rr()}
-function io(){const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target)}}),{threshold:.15});document.querySelectorAll('.rv').forEach(e=>o.observe(e))}
-function landH(){const li=!!U,ctas=li?`<button class="btn pr" onclick=goD()>Open dashboard</button>`:`<button class="btn pr" onclick="goA('up')">Get started free</button><button class=btn onclick="goA('in')">Sign in</button>`;
- const F=[['◈','Products, variants and plans','Price by brand or variant, bill daily to yearly, and decide plan by plan what can pause, renew or close.'],['⟲','Quote to subscription','Start from a template, then move through Draft, Quotation, Confirmed, Active and Closed. Everyone sees the status.'],['⚡','Invoices that write themselves','One click bills every due subscription with lines, taxes and totals filled in. Nothing is billed twice or skipped.'],['%','Taxes and discounts','Set the rules once. Discounts land on the next invoice and stop when they expire or run out.'],['₹','Payments and overdue tracking','Record every payment against its invoice and see exactly who has paid and who needs a nudge.'],['▦','Dashboard and customer portal','Finance sees MRR, revenue and overdue invoices in one view. Customers manage their own plans.']],
- S=[['Set up','Products, plans, taxes'],['Quote','From a ready template'],['Activate','Confirm and go live'],['Bill','One click, every invoice'],['Collect','Track paid and overdue']];
- return`<div class=lp><div class=lh><i class="blob b1"></i><i class="blob b2"></i><div class=ln><div class=lg onclick=goL()>◐ Brightloop</div><div><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button>${li?`<button class=btn onclick=out()>Sign out</button><button class="btn pr" onclick=goD()>Dashboard</button>`:`<button class=btn onclick="goA('in')">Sign in</button><button class="btn pr" onclick="goA('up')">Get started</button>`}</div></div>
- <div><h1><span class=a style="--d:.1s">Subscriptions,</span><br><span class=a style="--d:.26s">billed while you sleep.</span></h1><p class=a style="--d:.4s">Plans, renewals, invoices and payments in one system. No spreadsheets, no hand-typed invoices, no missed renewals.</p><div class="cta a" style="--d:.55s">${ctas}</div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created for you</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div></div>
- <div class=a style="--d:.5s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹6,490'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div>
- <div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>Discount rules</span><span>Overdue alerts</span><span>Customer portal</span><span>Revenue reports</span>'.repeat(4)}</div></div></div>
- <div class=ls><h2 class=rv>Everything a recurring business needs, in one place.</h2><p class=rv style="--d:.1s">From the first product to the quarterly report, each step connects to the next.</p><div class=fg>${F.map((f,i)=>`<div class="fc rv" style="--d:${(i%3)*.1}s"><i>${f[0]}</i><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('')}</div></div>
- <div class=ls><h2 class=rv>From plan to paid in five steps.</h2><p class=rv style="--d:.1s">The same path every billing month, with no manual work in the middle.</p><div class="sp rv">${S.map((s,i)=>`<div class=sx><b>${i+1}</b><h3>${s[0]}</h3><p>${s[1]}</p></div>`).join('')}</div></div>
- <div class="band rv"><h2>Stop typing invoices by hand.</h2><p>Set up your first plan in minutes. Brightloop handles the rest.</p>${li?`<button class=btn onclick=goD()>Open dashboard</button>`:`<button class=btn onclick="goA('up')">Create your account</button>`}</div>
- <div class=ft><span>© Brightloop Software</span><a onclick="scrollTo({top:0,behavior:'smooth'})">Back to top</a></div></div>`}
-function cnt(fast){document.querySelectorAll('[data-n]').forEach(e=>{const n=+e.dataset.n,d=+e.dataset.d||0,sf=e.dataset.s||'',put=v=>e.textContent=v.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})+sf;if(fast)return put(n);let t0;const f=t=>{t0??=t;const p=Math.min(1,(t-t0)/1800);put(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};put(0);requestAnimationFrame(f)})}
-function rr(f){const a=$('#app');document.documentElement.dataset.mode=isDark()?'d':'l';if(L){a.innerHTML=landH();cnt(false);io();return}if(!U){const first=!AP;a.innerHTML=authH();cnt(!first);AP=true;return}tick();
- a.innerHTML=`<div class=sh><aside><div class=lg onclick=goL() style="cursor:pointer" title="Back to home">◐ Brightloop</div>${NAV[U.role].map(n=>`<a class="${page==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('')}</aside><main><div class=tb><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button><div class=chip><span class=av>${esc(U.name[0]).toUpperCase()}</span>${esc(U.name)}<small>${U.role}</small></div><button class=btn onclick=out()>Sign out</button></div>${P[page]()}</main></div>`;
- if(f){const e=$('.sr');if(e){e.focus();e.setSelectionRange(1e3,1e3)}}}
-(async()=>{try{const th=localStorage.getItem('bl_theme');if(th)document.documentElement.dataset.theme=th}catch(e){}try{S=JSON.parse(localStorage.getItem(K))}catch(e){}if(!S)S=await seed();S.users.forEach(u=>{if(u.email=='staff@brightloop.io')u.name='Purnava'});save();U=S.users.find(u=>u.id==S.sess)||null;matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>rr());L=!U;if(U)page=NAV[U.role][0][0];rr()})();
+
+function goL(){L=true;AP=false;scrollTo(0,0);rr()}
+function goA(t){tab=t;L=false;AP=false;scrollTo(0,0);rr()}
+function goD(){L=false;scrollTo(0,0);rr()}
+
+function io(){
+  const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target)}}),{threshold:.15});
+  document.querySelectorAll('.rv').forEach(e=>o.observe(e));
+}
+
+function landH(){
+  const li=!!U,ctas=li?`<button class="btn pr" onclick=goD()>Open dashboard</button>`:`<button class="btn pr" onclick="goA('up')">Get started free</button><button class=btn onclick="goA('in')">Sign in</button>`;
+  const F=[['◈','Products, variants and plans','Price by brand or variant, bill daily to yearly, and decide plan by plan what can pause, renew or close.'],['⟲','Quote to subscription','Start from a template, then move through Draft, Quotation, Confirmed, Active and Closed. Everyone sees the status.'],['⚡','Invoices that write themselves','One click bills every due subscription with lines, taxes and totals filled in. Nothing is billed twice or skipped.'],['%','Taxes and discounts','Set the rules once. Subtotals, taxes and totals are calculated strictly on the backend.'],['₹','Payments and overdue tracking','Record payments via UPI, Card, Cash, Bank Transfer and Cheque. Outstanding balances auto-calculate.'],['▦','Dashboard and customer portal','Real-time MRR, collected revenue, outstanding balances, and self-service customer portal.']];
+  const steps=[['Set up','Products, plans, taxes'],['Quote','From customer order'],['Activate','Confirm and go live'],['Bill','One click, server-verified'],['Collect','UPI, Card, Bank transfer']];
+  return`<div class=lp><div class=lh><i class="blob b1"></i><i class="blob b2"></i><div class=ln><div class=lg onclick=goL()>◐ Brightloop</div><div><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button>${li?`<button class=btn onclick=out()>Sign out</button><button class="btn pr" onclick=goD()>Dashboard</button>`:`<button class=btn onclick="goA('in')">Sign in</button><button class="btn pr" onclick="goA('up')">Get started</button>`}</div></div>
+  <div><h1><span class=a style="--d:.1s">Subscriptions,</span><br><span class=a style="--d:.26s">billed while you sleep.</span></h1><p class=a style="--d:.4s">Plans, renewals, invoices and payments in one system. No spreadsheets, no hand-typed invoices, no missed renewals.</p><div class="cta a" style="--d:.55s">${ctas}</div><div class="stats a" style="--d:.7s"><div><b data-n=24816>0</b><small>invoices created</small></div><div><b data-n=99.9 data-d=1 data-s="%">0</b><small>billed on time</small></div><div><b data-n=0>0</b><small>missed renewals</small></div></div></div>
+  <div class=a style="--d:.5s"><div class=card><div class=ch><b>Billing run</b><span>automatic</span></div><div class=pb><i></i></div>${[['Acme Retail','₹25,511.60'],['Globex Corp','₹14,160'],['Northwind Foods','₹3,245'],['Initech Labs','₹9,800']].map((r,i)=>`<div class=rw style="--i:${i}"><span>${r[0]}</span><b>${r[1]}</b><span class=pl><i>Draft</i><i>Confirmed</i><i>Paid</i></span></div>`).join('')}</div></div>
+  <div class=mq><div>${'<span>Auto-billing</span><span>Smart taxes</span><span>REST APIs</span><span>Spring Boot</span><span>MySQL Engine</span><span>Revenue reports</span>'.repeat(4)}</div></div></div>
+  <div class=ls><h2 class=rv>Everything a recurring business needs, in one place.</h2><p class=rv style="--d:.1s">From the first product to the quarterly report, each step connects to the next.</p><div class=fg>${F.map((f,i)=>`<div class="fc rv" style="--d:${(i%3)*.1}s"><i>${f[0]}</i><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('')}</div></div>
+  <div class=ls><h2 class=rv>From plan to paid in five steps.</h2><p class=rv style="--d:.1s">The same path every billing month, with no manual work in the middle.</p><div class="sp rv">${steps.map((s,i)=>`<div class=sx><b>${i+1}</b><h3>${s[0]}</h3><p>${s[1]}</p></div>`).join('')}</div></div>
+  <div class="band rv"><h2>Stop typing invoices by hand.</h2><p>Powered by Java Spring Boot REST APIs and MySQL backend.</p>${li?`<button class="btn" onclick=goD()>Open dashboard</button>`:`<button class="btn" onclick="goA('up')">Create your account</button>`}</div>
+  <div class=ft><span>© Brightloop Software · Powered by Spring Boot & MySQL</span><a onclick="scrollTo({top:0,behavior:'smooth'})">Back to top</a></div></div>`;
+}
+
+function cnt(fast){
+  document.querySelectorAll('[data-n]').forEach(e=>{
+    const n=+e.dataset.n,d=+e.dataset.d||0,sf=e.dataset.s||'',put=v=>e.textContent=v.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})+sf;
+    if(fast)return put(n);
+    let t0;const f=t=>{t0??=t;const p=Math.min(1,(t-t0)/1800);put(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};
+    put(0);requestAnimationFrame(f);
+  });
+}
+
+function rr(f){
+  const a=$('#app');
+  document.documentElement.dataset.mode=isDark()?'d':'l';
+  if(L){ a.innerHTML=landH(); cnt(false); io(); return; }
+  if(!U){ const first=!AP; a.innerHTML=authH(); cnt(!first); AP=true; return; }
+  a.innerHTML=`<div class=sh><aside><div class=lg onclick=goL() style="cursor:pointer" title="Back to home">◐ Brightloop</div>${(NAV[U.role]||[]).map(n=>`<a class="${page==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('')}</aside><main><div class=tb><button class="btn ic" title="Toggle dark mode" onclick=tgl()>${isDark()?'☀':'☾'}</button><div class=chip><span class=av>${esc(U.name[0]).toUpperCase()}</span>${esc(U.name)}<small style="margin-left:6px;text-transform:lowercase">${U.role}</small></div><button class=btn onclick=out()>Sign out</button></div>${P[page]?P[page]():P.dash()}</main></div>`;
+  if(f){ const e=$('.sr'); if(e){ e.focus(); e.setSelectionRange(1e3,1e3); } }
+}
+
+(async()=>{
+  try{ const th=localStorage.getItem('bl_theme'); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+  try{
+    const cachedU = localStorage.getItem('bl_u');
+    if(cachedU && token) {
+      U = JSON.parse(cachedU);
+      page = NAV[U.role]?.[0]?.[0] || 'dash';
+      L = false;
+      await loadData();
+    }
+  }catch(e){}
+  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>rr());
+  rr();
+})();
 </script></body></html>
